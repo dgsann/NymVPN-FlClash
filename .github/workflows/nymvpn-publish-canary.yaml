@@ -22,7 +22,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       SOURCE_RUN: ${{ inputs.source_run }}
-      SOURCE_SHA: b0e0ab3e092486d9886994341d1b96c8d6d6b3ba
+      SOURCE_SHA: b27bd8d8da1e97537ca99306ee07dae8ffffb33b
       EXPECTED_SIGNER: 3cd6e45336c130007d449327ee003275ae7e474ad23692cb41b22d54ce5a789b
     steps:
       - uses: actions/checkout@v4
@@ -46,17 +46,19 @@ jobs:
           grep -F "certificate SHA-256 digest: $EXPECTED_SIGNER" apk-signature.txt
           aapt=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -n 1)
           "$aapt" dump badging artifact/app-release.apk > apk-package.txt
-          grep -F "package: name='com.follow.clash.nymvpn' versionCode='2026092802' versionName='0.8.98-nymvpn.2'" apk-package.txt
+          grep -F "package: name='com.follow.clash.nymvpn' versionCode='2026092803' versionName='0.8.98-nymvpn.3'" apk-package.txt
           grep -F "application-label:'NymVPN FlClash'" apk-package.txt
           unzip -p artifact/app-release.apk lib/arm64-v8a/libclash.so > "$RUNNER_TEMP/libclash.so"
           grep -aFq 'x-nymvpn-telemost' "$RUNNER_TEMP/libclash.so"
           grep -aFq 'Telemost transport is stopped' "$RUNNER_TEMP/libclash.so"
+          grep -aFq 'x-nymvpn-auto' "$RUNNER_TEMP/libclash.so"
+          grep -aFq 'AutoTCP probe payload incomplete or invalid' "$RUNNER_TEMP/libclash.so"
       - name: Publish prerelease
         run: |
-          mv artifact/app-release.apk artifact/NymVPN-FlClash-0.8.98-nymvpn.2-arm64.apk
-          (cd artifact && sha256sum NymVPN-FlClash-0.8.98-nymvpn.2-arm64.apk > SHA256SUMS)
-          gh release create v0.8.98-nymvpn.2 \
+          mv artifact/app-release.apk artifact/NymVPN-FlClash-0.8.98-nymvpn.3-arm64.apk
+          (cd artifact && sha256sum NymVPN-FlClash-0.8.98-nymvpn.3-arm64.apk > SHA256SUMS)
+          gh release create v0.8.98-nymvpn.3 \
             --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --prerelease \
-            --title 'NymVPN FlClash — Телемост, Android ARM64' \
-            --notes-file release-notes/nymvpn-2.md \
-            artifact/NymVPN-FlClash-0.8.98-nymvpn.2-arm64.apk artifact/SHA256SUMS
+            --title 'NymVPN FlClash — AutoTCP, Android ARM64' \
+            --notes-file release-notes/nymvpn-3.md \
+            artifact/NymVPN-FlClash-0.8.98-nymvpn.3-arm64.apk artifact/SHA256SUMS
