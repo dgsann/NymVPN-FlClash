@@ -41,6 +41,11 @@ jobs:
           link-to-sdk: true
       - name: Resolve Flutter dependencies
         run: flutter pub get
+      - name: Install bindgen host library
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libclang-18-dev
+          echo 'LIBCLANG_PATH=/usr/lib/llvm-18/lib' >> "$GITHUB_ENV"
       - name: Build ARM64 canary
         run: flutter build apk --release --target-platform android-arm64
       - name: Record APK checksum
