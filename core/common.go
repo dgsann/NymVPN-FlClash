@@ -373,7 +373,14 @@ func loadConfig(path string) (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return config.ParseRawConfig(raw)
+	cfg, err := config.ParseRawConfig(raw)
+	if err != nil {
+		return nil, err
+	}
+	if err := attachTelemost(raw, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 func applyConfig(params *SetupParams) error {
@@ -400,7 +407,9 @@ func applyConfig(params *SetupParams) error {
 		cfg = fallback
 	}
 
+	closeTelemost(currentConfig)
 	currentConfig = cfg
+	setTelemostActive(cfg, isRunning.Load())
 	hub.ApplyConfig(cfg)
 	patchSelectGroup(params.SelectedMap)
 	updateListeners(cfg)

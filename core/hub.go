@@ -44,6 +44,7 @@ func handleInitClash(params *InitParams) bool {
 	sdkVersion.Store(int32(params.Version))
 	constant.SetHomeDir(params.HomeDir)
 	initOwnership(params.HomeDir)
+	initTelemostProtection()
 	isInit.Store(true)
 	return true
 }
@@ -52,6 +53,7 @@ func handleStartListener() bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 	isRunning.Store(true)
+	setTelemostActive(currentConfig, true)
 	updateListeners(currentConfig)
 	resolver.ResetConnection()
 	return true
@@ -61,6 +63,7 @@ func handleStopListener() bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 	isRunning.Store(false)
+	setTelemostActive(currentConfig, false)
 	listener.StopListener()
 	resolver.ResetConnection()
 	return true
@@ -86,6 +89,7 @@ func handleShutdown() bool {
 	isRunning.Store(false)
 	listener.StopListener()
 	updater.StopGeoUpdater()
+	closeTelemost(currentConfig)
 	executor.Shutdown()
 	currentConfig = nil
 	isInit.Store(false)

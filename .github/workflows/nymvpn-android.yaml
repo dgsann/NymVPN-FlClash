@@ -18,13 +18,16 @@ jobs:
         with:
           go-version: '1.26.4'
           cache-dependency-path: core/go.sum
-      - name: Test core and port candidates
+      - name: Test core, transports, and port candidates
         working-directory: core
         env:
           CGO_ENABLED: '0'
         run: |
-          go test -count=1 . ./portprofile
-          go vet . ./portprofile
+          go test -count=1 . ./telemost ./portprofile
+          go vet . ./telemost ./portprofile
+      - name: Test transport concurrency
+        working-directory: core
+        run: go test -race -count=1 ./telemost
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -46,8 +49,21 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y libclang-18-dev
           echo 'LIBCLANG_PATH=/usr/lib/llvm-18/lib' >> "$GITHUB_ENV"
+      - name: Restore private signing identity
+        env:
+          KEYSTORE: ${{ secrets.NYMVPN_ANDROID_KEYSTORE }}
+          STORE_PASSWORD: ${{ secrets.NYMVPN_ANDROID_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE"
+          test -n "$STORE_PASSWORD"
+          umask 077
+          printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
+          printf '\nstorePassword=%s\nkeyAlias=nymvpn\nkeyPassword=%s\n' "$STORE_PASSWORD" "$STORE_PASSWORD" >> android/local.properties
       - name: Build ARM64 canary
-        run: flutter build apk --release --target-platform android-arm64
+        run: flutter build apk --release --target-platform android-arm64 --build-number=2026092802 --build-name=0.8.98-nymvpn.2
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/app/keystore.jks android/local.properties
       - name: Record APK checksum
         run: sha256sum build/app/outputs/flutter-apk/app-release.apk > build/app/outputs/flutter-apk/SHA256SUMS
       - uses: actions/upload-artifact@v4

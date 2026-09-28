@@ -50,26 +50,63 @@ Do not treat a successful build or latency check as restored connectivity.
 ```sh
 git submodule update --init --recursive
 cd core
-CGO_ENABLED=0 go test . ./portprofile
-CGO_ENABLED=0 go vet . ./portprofile
+CGO_ENABLED=0 go test . ./telemost ./portprofile
+CGO_ENABLED=0 go vet . ./telemost ./portprofile
 ```
 
-The manual `NymVPN Android canary` workflow runs these checks and builds an ARM64
-release-mode APK using upstream's development signing fallback. It uses the
-separate `com.follow.clash.dev` package, so it does not update the stable
-`com.follow.clash` installation. A locally generated CI debug signing key is
-not a durable release signing identity. Establish a private stable signing key
-before distributing ongoing updates. Existing FlClash development builds can
-conflict with this package; do not uninstall them to test this artifact.
+The manual `NymVPN Android canary` workflow runs these checks, races the transport
+lifecycle tests, and builds an ARM64 APK. Builds starting with `nymvpn.2` use
+`com.follow.clash.nymvpn`, labelled **NymVPN FlClash**, and a durable private
+signing identity held in GitHub Actions secrets. They install alongside both
+stable FlClash and the first `.dev` canary. Import your subscription into this
+separate installation. The fork does not initialize upstream Firebase reporting.
 
-No automatic update feed, production profile changes, new server listeners, or
-new tunneling transports are activated by this fork. Android installation and
-real transfers over Wi-Fi and mobile data still need device validation.
+No automatic update feed or server listeners are created by the APK. Android
+installation, permission/revoke callbacks, and transfers over Wi-Fi and mobile
+data still need device validation.
 
-## Next networking work
+## Experimental Telemost transport
 
-Add bounded transfer diagnostics that distinguish a successful handshake from
-a complete download and report the stage of failure without subscription secrets.
-Integrate a new transport only after reproducing it independently and proving its
-Android socket protection, DNS routing, cancellation, and service lifecycle.
-The existing Telemost experiment is not implemented in this fork.
+An opt-in inline node embeds the public olcrtc client, pinned to
+[`08843d6`](https://github.com/alananisimov/olcrtc/tree/08843d6accd7f43a1d04aa0ac7a3d5ea90e27efa)
+(WTFPL). It requires an already provisioned Telemost/vp8channel server and private
+room/key. Placeholder example, not a working subscription:
+
+```yaml
+proxies:
+  - name: NymVPN-Telemost
+    type: socks5
+    server: 127.0.0.1
+    port: 1
+    udp: false
+    x-nymvpn-telemost:
+      room: YOUR_PRIVATE_ROOM_ID
+      key: YOUR_PRIVATE_64_HEX_KEY
+      dns: 77.88.8.8:53
+```
+
+Add this name to a manual selector. There is at most one tunnel per profile;
+it opens lazily on first use, shared by concurrent requests. It provides TCP
+only. UDP applications need another node; HTTPS should use TCP rather than QUIC.
+Initial connection can take longer than the ordinary latency-test timeout.
+Stock FlClash does not implement this extension and cannot use the placeholder.
+
+The wrapper swaps the parsed SOCKS placeholder before applying the configuration;
+selectors retain the same proxy reference. The internal SOCKS listener uses an
+ephemeral loopback port and random per-session authentication. Android sockets
+use the existing VpnService protection callback. Stop, shutdown, and config reload
+cancel the transport through the existing Core lifecycle. Individual request
+timeouts do not tear down the shared session. Failed sessions back off before
+reconnecting. Secrets stay in the private profile, never in the APK.
+
+Android is the intended test target. Windows supports explicit physical-interface
+binding for diagnosis; the new transport fails closed on other platforms.
+An opt-in network test requires `NYMVPN_TELEMOST_TEST_PROFILE`,
+`NYMVPN_TELEMOST_TEST_INTERFACE`, and `NYMVPN_TELEMOST_EXPECTED_EGRESS` and runs
+with `go test -run TestTelemostOptInNetwork -v .`. Its upstream logs can contain
+private connection details: keep the complete output private.
+
+On 2026-09-28 the embedded adapter and actual selector passed a Windows test
+bound to Ethernet: expected server egress, Telegram HTTPS, all 5 MiB downloaded
+in 6.95 seconds, then Telegram again. This is not proof of Android connectivity
+or of availability on a particular mobile operator.
