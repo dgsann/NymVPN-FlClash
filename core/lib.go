@@ -256,6 +256,9 @@ func handleUpdateDns(value string) {
 		log.Infoln("[DNS] updateDns %s", value)
 		dns.UpdateSystemDNS(strings.Split(value, ","))
 		dns.FlushCacheWithDefaultResolver()
+		configMu.Lock()
+		resetAuto(currentConfig)
+		configMu.Unlock()
 	})
 }
 

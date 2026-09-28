@@ -18,5 +18,8 @@ func unmarshalProfile(buf []byte) (*config.RawConfig, error) {
 	if err := validateTelemost(raw); err != nil {
 		return nil, err
 	}
+	if err := validateAuto(raw); err != nil {
+		return nil, err
+	}
 	return raw, nil
 }

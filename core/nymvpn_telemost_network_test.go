@@ -33,7 +33,9 @@ func TestTelemostOptInNetwork(t *testing.T) {
 		t.Fatal("network-test profile failed to load")
 	}
 	defer closeTelemost(cfg)
+	defer closeAuto(cfg)
 	setTelemostActive(cfg, true)
+	setAutoActive(cfg, true)
 	group := cfg.Proxies["VPN"]
 	if group == nil {
 		t.Fatal("VPN group missing")

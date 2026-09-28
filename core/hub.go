@@ -54,6 +54,7 @@ func handleStartListener() bool {
 	defer configMu.Unlock()
 	isRunning.Store(true)
 	setTelemostActive(currentConfig, true)
+	setAutoActive(currentConfig, true)
 	updateListeners(currentConfig)
 	resolver.ResetConnection()
 	return true
@@ -63,6 +64,7 @@ func handleStopListener() bool {
 	configMu.Lock()
 	defer configMu.Unlock()
 	isRunning.Store(false)
+	setAutoActive(currentConfig, false)
 	setTelemostActive(currentConfig, false)
 	listener.StopListener()
 	resolver.ResetConnection()
@@ -89,6 +91,7 @@ func handleShutdown() bool {
 	isRunning.Store(false)
 	listener.StopListener()
 	updater.StopGeoUpdater()
+	closeAuto(currentConfig)
 	closeTelemost(currentConfig)
 	executor.Shutdown()
 	currentConfig = nil
@@ -320,6 +323,9 @@ func handleCloseConnections() bool {
 }
 
 func handleResetConnections() bool {
+	configMu.Lock()
+	resetAuto(currentConfig)
+	configMu.Unlock()
 	resolver.ResetConnection()
 	return true
 }
