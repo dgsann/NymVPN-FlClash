@@ -1,3 +1,8 @@
+> **NymVPN development fork.** See [NymVPN changes and build notes](NYMVPN.md).
+> Test APKs are produced by the [manual Android workflow](https://github.com/dgsann/NymVPN-FlClash/actions/workflows/nymvpn-android.yaml).
+> This is an experimental fork, not an upstream FlClash release or a confirmed fix for VPN connectivity.
+> The upstream project information and download links below are retained for attribution.
+
 <div>
 
 [**简体中文**](README_zh_CN.md)
