@@ -11,6 +11,10 @@ permissions:
   actions: read
   contents: write
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -38,7 +42,8 @@ jobs:
           echo "$expected  artifact/app-release.apk" | sha256sum --check
           signer=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)
           "$signer" verify --verbose --print-certs artifact/app-release.apk | tee apk-signature.txt
-          grep -F "Signer #1 certificate SHA-256 digest: $EXPECTED_SIGNER" apk-signature.txt
+          grep -Fx 'Number of signers: 1' apk-signature.txt
+          grep -F "certificate SHA-256 digest: $EXPECTED_SIGNER" apk-signature.txt
           aapt=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -n 1)
           "$aapt" dump badging artifact/app-release.apk > apk-package.txt
           grep -F "package: name='com.follow.clash.nymvpn' versionCode='2026092802' versionName='0.8.98-nymvpn.2'" apk-package.txt
