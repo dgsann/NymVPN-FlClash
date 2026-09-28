@@ -27,7 +27,6 @@ import (
 	"github.com/metacubex/mihomo/constant/features"
 	cp "github.com/metacubex/mihomo/constant/provider"
 	"github.com/metacubex/mihomo/hub"
-	"github.com/metacubex/mihomo/hub/executor"
 	"github.com/metacubex/mihomo/hub/route"
 	"github.com/metacubex/mihomo/listener"
 	authStore "github.com/metacubex/mihomo/listener/auth"
@@ -370,7 +369,11 @@ func loadConfig(path string) (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return executor.ParseWithBytes(buf)
+	raw, err := unmarshalProfile(buf)
+	if err != nil {
+		return nil, err
+	}
+	return config.ParseRawConfig(raw)
 }
 
 func applyConfig(params *SetupParams) error {

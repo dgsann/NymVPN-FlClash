@@ -100,7 +100,7 @@ func handleValidateConfig(path string) string {
 	if err != nil {
 		return err.Error()
 	}
-	if _, err = config.UnmarshalRawConfig(buf); err != nil {
+	if _, err = unmarshalProfile(buf); err != nil {
 		return err.Error()
 	}
 	return ""
@@ -629,7 +629,7 @@ func handleGetConfig(path string) (*config.RawConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	return config.UnmarshalRawConfig(buf)
+	return unmarshalProfile(buf)
 }
 
 func handleCrash() {
