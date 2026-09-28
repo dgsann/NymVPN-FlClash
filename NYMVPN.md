@@ -72,6 +72,12 @@ An opt-in inline node embeds the public olcrtc client, pinned to
 (WTFPL). It requires an already provisioned Telemost/vp8channel server and private
 room/key. Placeholder example, not a working subscription:
 
+Pion's legacy `wlynxg/anet` dependency is redirected through a small compatibility
+module to the existing Mihomo interface-enumeration implementation. This avoids
+private `net.zoneCache` linkage rejected by current Go on Android; global linker
+checks remain enabled. CI separately links the Android native core before APK
+assembly and verifies the finished APK signature with `apksigner`.
+
 ```yaml
 proxies:
   - name: NymVPN-Telemost
