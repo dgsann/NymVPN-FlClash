@@ -134,11 +134,15 @@ class SetupAction extends _$SetupAction {
   }
 
   Future<void> reconcilePowerStop() async {
-    if (!system.isAndroid || !_isRunning || _runningTransitions != 0) return;
+    if (!system.isAndroid || !_isRunning || _runningTransitions != 0) {
+      return;
+    }
     final request = _latestRunRequest;
     try {
       final stopped = await service?.isPowerStopped() ?? false;
-      if (!ref.mounted || !stopped || request != _latestRunRequest || _runningTransitions != 0) return;
+      if (!ref.mounted || !stopped || request != _latestRunRequest || _runningTransitions != 0) {
+        return;
+      }
       _setLocalRunning(false);
       ref.read(trafficsProvider.notifier).clear();
     } catch (_) {

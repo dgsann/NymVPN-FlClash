@@ -26,14 +26,18 @@ jobs:
         run: |
           sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
           flutter pub get
-          dart format test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
-          flutter test test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
-          flutter analyze test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
+          dart run intl_utils:generate
+          dart run build_runner build --delete-conflicting-outputs --build-filter='lib/models/generated/config.*.dart' --build-filter='lib/models/generated/state.*.dart' --build-filter='lib/providers/generated/*.g.dart'
+          dart format test/widgets/nymvpn_customization_layout_test.dart test/widgets/nymvpn_customization_test.dart test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
+          flutter test test/widgets/nymvpn_customization_layout_test.dart test/widgets/nymvpn_customization_test.dart test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
+          flutter analyze test/widgets/nymvpn_customization_layout_test.dart test/widgets/nymvpn_customization_test.dart test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: NymVPN-account-layout
           path: |
             build/profile-preview/
+            test/widgets/nymvpn_customization_layout_test.dart
+            test/widgets/nymvpn_customization_test.dart
             test/widgets/nymvpn_account_layout_test.dart
             test/widgets/nymvpn_account_card_test.dart

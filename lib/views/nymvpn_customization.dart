@@ -10,11 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NymvpnCustomizationView extends ConsumerWidget {
-  const NymvpnCustomizationView({super.key});
+  const NymvpnCustomizationView({super.key, this.isAndroid});
+
+  final bool? isAndroid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = context.appLocalizations;
+    final android = isAndroid ?? system.isAndroid;
     final settings = ref.watch(appSettingProvider);
     void layout(List<DashboardWidget> widgets) {
       ref.read(appSettingProvider.notifier).update(
@@ -59,7 +62,7 @@ class NymvpnCustomizationView extends ConsumerWidget {
                 ? [...settings.dashboardWidgets, DashboardWidget.nymvpnAccount]
                 : settings.dashboardWidgets.where((item) => item != DashboardWidget.nymvpnAccount).toList()),
           ),
-          if (system.isAndroid) ...[
+          if (android) ...[
             ListHeader(title: strings.nymPowerTitle),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -74,7 +77,9 @@ class NymvpnCustomizationView extends ConsumerWidget {
               value: settings.nymAutoStopMinutes,
               textBuilder: minutes,
               onChanged: (int? value) {
-                if (value == null) return;
+                if (value == null) {
+                  return;
+                }
                 ref.read(appSettingProvider.notifier).update((state) => state.copyWith(nymAutoStopMinutes: value));
               },
             ),
@@ -87,7 +92,9 @@ class NymvpnCustomizationView extends ConsumerWidget {
               value: settings.nymStopBatteryPercent,
               textBuilder: battery,
               onChanged: (int? value) {
-                if (value == null) return;
+                if (value == null) {
+                  return;
+                }
                 ref.read(appSettingProvider.notifier).update((state) => state.copyWith(nymStopBatteryPercent: value));
               },
             ),
@@ -99,7 +106,7 @@ class NymvpnCustomizationView extends ConsumerWidget {
             subtitle: Text(strings.themeDesc),
             widget: const ThemeView(),
           ),
-          if (system.isAndroid)
+          if (android)
             ListItem.open(
               leading: const Icon(Icons.apps),
               title: Text(strings.nymApps),

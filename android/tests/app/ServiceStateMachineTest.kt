@@ -734,4 +734,16 @@ class ServiceStateMachineTest {
         assertTrue(machine.isPowerStopped)
         assertEquals(1, host.powerNotifications)
     }
+
+    @Test
+    fun `a callback from disabled conditions cannot stop the current connection`() = runTest {
+        val host = FakeHost(backgroundScope)
+        val machine = ServiceStateMachine(host)
+        machine.syncSharedState(configuredState().copy(nymAutoStopMinutes = 1))
+        machine.requestStart().await()
+        val token = machine.captureRequestToken()
+        machine.syncSharedState(configuredState())
+        assertFalse(machine.requestPowerStop(token, PowerPolicy(minutes = 1)).await())
+        assertEquals(0, host.stopCalls)
+    }
 }

@@ -63,7 +63,9 @@ List<DashboardWidget> dashboardWidgetsSafeFormJson(
 }
 
 Map<String, Object?> migrateNymDashboard(Map<String, Object?> json) {
-  if (json['nymDashboardVersion'] == 1) return json;
+  if (json['nymDashboardVersion'] == 1) {
+    return json;
+  }
   final old = json['dashboardWidgets'];
   return {
     ...json,

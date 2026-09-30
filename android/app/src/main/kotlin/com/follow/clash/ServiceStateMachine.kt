@@ -61,7 +61,7 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
         powerJob = host.scope.launch {
             while (isCurrent(request) && runState.value == RunState.STARTED) {
                 if (policy.shouldStop(host.powerNowMillis - started, host.batteryReading())) {
-                    requestPowerStop(request)
+                    requestPowerStop(request, policy)
                     return@launch
                 }
                 delay(30_000)
@@ -69,7 +69,9 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
         }
     }
 
-    internal fun requestPowerStop(token: RunRequest): Deferred<Boolean> {
+    @Synchronized
+    internal fun requestPowerStop(token: RunRequest, expectedPolicy: PowerPolicy? = null): Deferred<Boolean> {
+        if (expectedPolicy != null && expectedPolicy != watchedPowerPolicy) return CompletableDeferred(false)
         if (!token.running) return CompletableDeferred(false)
         val request = arbiter.requestIfCurrent(token, running = false)
             ?: return CompletableDeferred(false)
