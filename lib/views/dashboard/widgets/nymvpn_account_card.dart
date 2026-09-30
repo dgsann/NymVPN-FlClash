@@ -16,7 +16,8 @@ class NymvpnAccountPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider);
-    if (profile == null || NymvpnAccountAccess.fromSubscription(profile.url) == null) {
+    if (profile == null ||
+        NymvpnAccountAccess.fromSubscription(profile.url) == null) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -92,7 +93,10 @@ class _NymvpnAccountCardState extends State<NymvpnAccountCard>
   Future<void> _refresh() async {
     if (_loading) return;
     final generation = ++_generation;
-    setState(() { _loading = true; _failed = false; });
+    setState(() {
+      _loading = true;
+      _failed = false;
+    });
     try {
       final account = await widget.load(widget.subscription);
       if (!mounted || generation != _generation) return;
@@ -101,7 +105,9 @@ class _NymvpnAccountCardState extends State<NymvpnAccountCard>
       if (!mounted || generation != _generation) return;
       setState(() => _failed = true);
     } finally {
-      if (mounted && generation == _generation) setState(() => _loading = false);
+      if (mounted && generation == _generation) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -111,8 +117,9 @@ class _NymvpnAccountCardState extends State<NymvpnAccountCard>
     setState(() => _opening = true);
     try {
       final uri = access.telegramLink(game: game);
-      final opened = await (widget.openLink?.call(uri) ??
-          launchUrl(uri, mode: LaunchMode.externalApplication));
+      final opened =
+          await (widget.openLink?.call(uri) ??
+              launchUrl(uri, mode: LaunchMode.externalApplication));
       if (!opened) throw StateError('Telegram unavailable');
     } catch (_) {
       if (mounted) {
@@ -136,55 +143,86 @@ class _NymvpnAccountCardState extends State<NymvpnAccountCard>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              const Icon(Icons.account_circle_outlined),
-              const SizedBox(width: 10),
-              Expanded(child: Text(strings.nymAccountTitle, style: context.textTheme.titleMedium)),
-              IconButton(
-                tooltip: strings.nymAccountRefresh,
-                onPressed: _loading ? null : _refresh,
-                icon: const Icon(Icons.refresh),
-              ),
-            ]),
+            Row(
+              children: [
+                const Icon(Icons.account_circle_outlined),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    strings.nymAccountTitle,
+                    style: context.textTheme.titleMedium,
+                  ),
+                ),
+                IconButton(
+                  tooltip: strings.nymAccountRefresh,
+                  onPressed: _loading ? null : _refresh,
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
+            ),
             if (_loading) ...[
               const LinearProgressIndicator(),
               const SizedBox(height: 12),
             ],
             if (account != null) ...[
               Text(account.name, style: context.textTheme.titleLarge),
-              Text(account.username.isEmpty ? 'Telegram · ${account.userId}' : '@${account.username} · ${account.userId}'),
+              Text(
+                account.username.isEmpty
+                    ? 'Telegram · ${account.userId}'
+                    : '@${account.username} · ${account.userId}',
+              ),
               const SizedBox(height: 12),
-              Wrap(spacing: 16, runSpacing: 8, children: [
-                Text(strings.nymAccountLevel(account.level)),
-                Text(strings.nymAccountCoins(account.coins)),
-                Text('${account.xp} XP'),
-              ]),
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  Text(strings.nymAccountLevel(account.level)),
+                  Text(strings.nymAccountCoins(account.coins)),
+                  Text('${account.xp} XP'),
+                ],
+              ),
               const SizedBox(height: 10),
               LinearProgressIndicator(value: account.progress),
               const SizedBox(height: 8),
-              Text(account.levelSize == null ? strings.nymAccountMaxLevel : strings.nymAccountNextLevel(account.xpLeft)),
+              Text(
+                account.levelSize == null
+                    ? strings.nymAccountMaxLevel
+                    : strings.nymAccountNextLevel(account.xpLeft),
+              ),
               const SizedBox(height: 8),
-              Text(account.subscriptionActive ? strings.nymAccountActive : strings.nymAccountInactive),
+              Text(
+                account.subscriptionActive
+                    ? strings.nymAccountActive
+                    : strings.nymAccountInactive,
+              ),
             ] else if (!_failed) ...[
               Text(strings.nymAccountLoading),
             ],
             if (_failed) ...[
               const SizedBox(height: 8),
-              Text(account == null ? strings.nymAccountError : strings.nymAccountStale),
+              Text(
+                account == null
+                    ? strings.nymAccountError
+                    : strings.nymAccountStale,
+              ),
             ],
             const SizedBox(height: 12),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              FilledButton.icon(
-                onPressed: _opening ? null : () => _open(true),
-                icon: const Icon(Icons.sports_esports_outlined),
-                label: Text(strings.nymAccountPlay),
-              ),
-              OutlinedButton.icon(
-                onPressed: _opening ? null : () => _open(false),
-                icon: const Icon(Icons.telegram),
-                label: Text(strings.nymAccountTelegram),
-              ),
-            ]),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: _opening ? null : () => _open(true),
+                  icon: const Icon(Icons.sports_esports_outlined),
+                  label: Text(strings.nymAccountPlay),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _opening ? null : () => _open(false),
+                  icon: const Icon(Icons.telegram),
+                  label: Text(strings.nymAccountTelegram),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             Text(strings.nymAccountHint, style: context.textTheme.bodySmall),
           ],

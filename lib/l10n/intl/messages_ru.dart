@@ -79,22 +79,28 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(label) => "Значение «${label}» должно быть числом";
 
-  static String m24(label) =>
+  static String m24(value) => "${value} монет";
+
+  static String m25(value) => "Уровень ${value}";
+
+  static String m26(value) => "До следующего уровня: ${value} XP";
+
+  static String m27(label) =>
       "Значение «${label}» должно быть от 1024 до 49151";
 
-  static String m25(count) => "${count} прокси";
+  static String m28(count) => "${count} прокси";
 
-  static String m26(count) =>
+  static String m29(count) =>
       "${Intl.plural(count, one: '${count} правило', few: '${count} правила', many: '${count} правил', other: '${count} правила')}";
 
-  static String m27(count) =>
+  static String m30(count) =>
       "${Intl.plural(count, one: '${count} секунда', few: '${count} секунды', many: '${count} секунд', other: '${count} секунды')}";
 
-  static String m28(count) => "Выбрано: ${count}";
+  static String m31(count) => "Выбрано: ${count}";
 
-  static String m29(label) => "Значение «${label}» должно быть URL";
+  static String m32(label) => "Значение «${label}» должно быть URL";
 
-  static String m30(count) =>
+  static String m33(count) =>
       "${Intl.plural(count, one: '${count} год назад', few: '${count} года назад', many: '${count} лет назад', other: '${count} года назад')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -565,9 +571,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),
@@ -735,6 +742,43 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nullTip": m22,
     "numberTip": m23,
+    "nymAccountActive": MessageLookupByLibrary.simpleMessage(
+      "Подписка VPN активна",
+    ),
+    "nymAccountCoins": m24,
+    "nymAccountError": MessageLookupByLibrary.simpleMessage(
+      "Не удалось загрузить профиль. Проверь подключение и нажми обновить.",
+    ),
+    "nymAccountHint": MessageLookupByLibrary.simpleMessage(
+      "Общие уровень и баланс в приложении, игре и Telegram. Играй с указанного здесь Telegram-аккаунта.",
+    ),
+    "nymAccountInactive": MessageLookupByLibrary.simpleMessage(
+      "Подписка VPN неактивна",
+    ),
+    "nymAccountLevel": m25,
+    "nymAccountLoading": MessageLookupByLibrary.simpleMessage(
+      "Загружаем твой прогресс…",
+    ),
+    "nymAccountMaxLevel": MessageLookupByLibrary.simpleMessage(
+      "Максимальный уровень",
+    ),
+    "nymAccountNextLevel": m26,
+    "nymAccountPlay": MessageLookupByLibrary.simpleMessage("Играть в Telegram"),
+    "nymAccountRefresh": MessageLookupByLibrary.simpleMessage(
+      "Обновить профиль",
+    ),
+    "nymAccountStale": MessageLookupByLibrary.simpleMessage(
+      "Не удалось обновить. Показан последний загруженный прогресс.",
+    ),
+    "nymAccountTelegram": MessageLookupByLibrary.simpleMessage(
+      "Профиль в Telegram",
+    ),
+    "nymAccountTitle": MessageLookupByLibrary.simpleMessage(
+      "Мой профиль NymVPN",
+    ),
+    "nymTelegramError": MessageLookupByLibrary.simpleMessage(
+      "Не удалось открыть Telegram. Открой @nym_vpnbot вручную.",
+    ),
     "onDemand": MessageLookupByLibrary.simpleMessage("По условию"),
     "onDemandDesc": MessageLookupByLibrary.simpleMessage(
       "Настройте состояние работы приложения для определённых сценариев",
@@ -792,7 +836,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "portConflictTip": MessageLookupByLibrary.simpleMessage(
       "Введите другой порт",
     ),
-    "portTip": m24,
+    "portTip": m27,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage(
       "Предпочитать HTTP/3 для DoH",
     ),
@@ -827,7 +871,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "project": MessageLookupByLibrary.simpleMessage("Проект"),
     "providers": MessageLookupByLibrary.simpleMessage("Внешние ресурсы"),
     "proxies": MessageLookupByLibrary.simpleMessage("Прокси"),
-    "proxiesCount": m25,
+    "proxiesCount": m28,
     "proxiesEmpty": MessageLookupByLibrary.simpleMessage("Список прокси пуст"),
     "proxyChains": MessageLookupByLibrary.simpleMessage("Цепочка прокси"),
     "proxyDetectedAbnormal": MessageLookupByLibrary.simpleMessage(
@@ -1063,7 +1107,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ruleSet": MessageLookupByLibrary.simpleMessage("Набор правил"),
     "ruleTarget": MessageLookupByLibrary.simpleMessage("Цель правила"),
     "rules": MessageLookupByLibrary.simpleMessage("Правила"),
-    "rulesCount": m26,
+    "rulesCount": m29,
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения?"),
     "script": MessageLookupByLibrary.simpleMessage("Скрипт"),
@@ -1075,7 +1119,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "search": MessageLookupByLibrary.simpleMessage("Поиск"),
     "seconds": MessageLookupByLibrary.simpleMessage("секунд"),
-    "secondsCount": m27,
+    "secondsCount": m30,
     "selectAll": MessageLookupByLibrary.simpleMessage("Выбрать всё"),
     "selectMatchTarget": MessageLookupByLibrary.simpleMessage(
       "Выбрать MATCH-TARGET",
@@ -1094,7 +1138,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Выберите подправило",
     ),
     "selected": MessageLookupByLibrary.simpleMessage("Выбрано"),
-    "selectedCountTitle": m28,
+    "selectedCountTitle": m31,
     "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "show": MessageLookupByLibrary.simpleMessage("Показать"),
     "showLess": MessageLookupByLibrary.simpleMessage("Свернуть"),
@@ -1219,7 +1263,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("Отдача"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("Получить профиль по URL"),
-    "urlTip": m29,
+    "urlTip": m32,
     "useHosts": MessageLookupByLibrary.simpleMessage("Использовать hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Использовать системный hosts",
@@ -1246,7 +1290,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "whitelistMode": MessageLookupByLibrary.simpleMessage(
       "Режим белого списка",
     ),
-    "yearsAgo": m30,
+    "yearsAgo": m33,
     "zhCN": MessageLookupByLibrary.simpleMessage("Упрощённый китайский"),
   };
 }

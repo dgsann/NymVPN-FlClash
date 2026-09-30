@@ -71,19 +71,25 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(label) => "${label}必须为数字";
 
-  static String m24(label) => "${label} 必须在 1024 到 49151 之间";
+  static String m24(value) => "${value} 金币";
 
-  static String m25(count) => "${count} 个代理";
+  static String m25(value) => "等级 ${value}";
 
-  static String m26(count) => "${count} 条规则";
+  static String m26(value) => "距离下一级还需 ${value} XP";
 
-  static String m27(count) => "${count} 秒";
+  static String m27(label) => "${label} 必须在 1024 到 49151 之间";
 
-  static String m28(count) => "已选择 ${count} 项";
+  static String m28(count) => "${count} 个代理";
 
-  static String m29(label) => "${label}必须为URL";
+  static String m29(count) => "${count} 条规则";
 
-  static String m30(count) => "${count} 年前";
+  static String m30(count) => "${count} 秒";
+
+  static String m31(count) => "已选择 ${count} 项";
+
+  static String m32(label) => "${label}必须为URL";
+
+  static String m33(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -508,6 +514,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "nullProfileDesc": MessageLookupByLibrary.simpleMessage("没有配置文件,请先添加配置文件"),
     "nullTip": m22,
     "numberTip": m23,
+    "nymAccountActive": MessageLookupByLibrary.simpleMessage("VPN 订阅有效"),
+    "nymAccountCoins": m24,
+    "nymAccountError": MessageLookupByLibrary.simpleMessage("无法加载资料。请检查连接后刷新。"),
+    "nymAccountHint": MessageLookupByLibrary.simpleMessage(
+      "应用、游戏与 Telegram 共享等级和余额。请使用此处显示的 Telegram 账号。",
+    ),
+    "nymAccountInactive": MessageLookupByLibrary.simpleMessage("VPN 订阅无效"),
+    "nymAccountLevel": m25,
+    "nymAccountLoading": MessageLookupByLibrary.simpleMessage("正在加载进度…"),
+    "nymAccountMaxLevel": MessageLookupByLibrary.simpleMessage("已达最高等级"),
+    "nymAccountNextLevel": m26,
+    "nymAccountPlay": MessageLookupByLibrary.simpleMessage("在 Telegram 中游玩"),
+    "nymAccountRefresh": MessageLookupByLibrary.simpleMessage("刷新资料"),
+    "nymAccountStale": MessageLookupByLibrary.simpleMessage("刷新失败。显示上次加载的进度。"),
+    "nymAccountTelegram": MessageLookupByLibrary.simpleMessage("Telegram 资料"),
+    "nymAccountTitle": MessageLookupByLibrary.simpleMessage("我的 NymVPN 资料"),
+    "nymTelegramError": MessageLookupByLibrary.simpleMessage(
+      "无法打开 Telegram。请手动打开 @nym_vpnbot。",
+    ),
     "onDemand": MessageLookupByLibrary.simpleMessage("按需运行"),
     "onDemandDesc": MessageLookupByLibrary.simpleMessage("配置程序特定场景运行状态"),
     "onlyIcon": MessageLookupByLibrary.simpleMessage("仅图标"),
@@ -541,7 +566,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "port": MessageLookupByLibrary.simpleMessage("端口"),
     "portConflictTip": MessageLookupByLibrary.simpleMessage("请输入不同的端口"),
-    "portTip": m24,
+    "portTip": m27,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage("优先使用DOH的http/3"),
     "prerequisites": MessageLookupByLibrary.simpleMessage("前置条件"),
     "pressKeyboard": MessageLookupByLibrary.simpleMessage("请按下按键"),
@@ -570,7 +595,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "project": MessageLookupByLibrary.simpleMessage("项目"),
     "providers": MessageLookupByLibrary.simpleMessage("外部资源"),
     "proxies": MessageLookupByLibrary.simpleMessage("代理"),
-    "proxiesCount": m25,
+    "proxiesCount": m28,
     "proxiesEmpty": MessageLookupByLibrary.simpleMessage("代理为空"),
     "proxyChains": MessageLookupByLibrary.simpleMessage("代理链"),
     "proxyDetectedAbnormal": MessageLookupByLibrary.simpleMessage(
@@ -728,7 +753,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ruleSet": MessageLookupByLibrary.simpleMessage("规则集"),
     "ruleTarget": MessageLookupByLibrary.simpleMessage("规则目标"),
     "rules": MessageLookupByLibrary.simpleMessage("规则"),
-    "rulesCount": m26,
+    "rulesCount": m29,
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("是否保存更改？"),
     "script": MessageLookupByLibrary.simpleMessage("脚本"),
@@ -738,7 +763,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "scrollToSelected": MessageLookupByLibrary.simpleMessage("滚动到已选"),
     "search": MessageLookupByLibrary.simpleMessage("搜索"),
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
-    "secondsCount": m27,
+    "secondsCount": m30,
     "selectAll": MessageLookupByLibrary.simpleMessage("全选"),
     "selectMatchTarget": MessageLookupByLibrary.simpleMessage(
       "选择 MATCH-TARGET",
@@ -749,7 +774,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectSplitStrategy": MessageLookupByLibrary.simpleMessage("请选择分流策略"),
     "selectSubRule": MessageLookupByLibrary.simpleMessage("请选择子规则"),
     "selected": MessageLookupByLibrary.simpleMessage("已选择"),
-    "selectedCountTitle": m28,
+    "selectedCountTitle": m31,
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "show": MessageLookupByLibrary.simpleMessage("显示"),
     "showLess": MessageLookupByLibrary.simpleMessage("收起"),
@@ -840,7 +865,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("通过URL获取配置文件"),
-    "urlTip": m29,
+    "urlTip": m32,
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "usedTraffic": MessageLookupByLibrary.simpleMessage("已用流量"),
@@ -857,7 +882,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "vpnTip": MessageLookupByLibrary.simpleMessage("重启VPN后改变生效"),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV配置"),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("白名单模式"),
-    "yearsAgo": m30,
+    "yearsAgo": m33,
     "zhCN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };
 }

@@ -10,19 +10,20 @@ class NymvpnAccountAccess {
     if (!isNymvpnSubscription(value)) return null;
     final parts = Uri.parse(value).pathSegments;
     final id = int.tryParse(parts[1]);
-    if (id == null || id <= 0 || !RegExp(r'^[a-f0-9]{32}$').hasMatch(parts[2])) {
+    if (id == null ||
+        id <= 0 ||
+        !RegExp(r'^[a-f0-9]{32}$').hasMatch(parts[2])) {
       return null;
     }
     return NymvpnAccountAccess(id, parts[2]);
   }
 
-  Uri get endpoint => Uri.https('sub.pixel-node.online', '/app/account/$userId');
+  Uri get endpoint =>
+      Uri.https('sub.pixel-node.online', '/app/account/$userId');
 
-  Uri telegramLink({required bool game}) => Uri.https(
-    't.me',
-    '/nym_vpnbot',
-    {'start': 'app_${game ? 'game' : 'profile'}_$userId'},
-  );
+  Uri telegramLink({required bool game}) => Uri.https('t.me', '/nym_vpnbot', {
+    'start': 'app_${game ? 'game' : 'profile'}_$userId',
+  });
 }
 
 class NymvpnAccount {
@@ -50,7 +51,10 @@ class NymvpnAccount {
     required this.subscriptionActive,
   });
 
-  factory NymvpnAccount.fromJson(Map<String, dynamic> data, int expectedUserId) {
+  factory NymvpnAccount.fromJson(
+    Map<String, dynamic> data,
+    int expectedUserId,
+  ) {
     if (data['version'] != 1 || data['tg_id'] != expectedUserId) {
       throw const FormatException('Account mismatch');
     }
@@ -61,6 +65,7 @@ class NymvpnAccount {
       }
       return value;
     }
+
     final name = data['name'];
     final username = data['username'];
     final active = data['subscription_active'];
@@ -73,11 +78,19 @@ class NymvpnAccount {
       throw const FormatException('Invalid account data');
     }
     return NymvpnAccount(
-      userId: expectedUserId, name: name, username: username, level: level,
-      xp: count('xp'), xpLeft: count('xp_left'), coins: count('coins'),
-      levelXp: count('level_xp'), levelSize: size, subscriptionActive: active,
+      userId: expectedUserId,
+      name: name,
+      username: username,
+      level: level,
+      xp: count('xp'),
+      xpLeft: count('xp_left'),
+      coins: count('coins'),
+      levelXp: count('level_xp'),
+      levelSize: size,
+      subscriptionActive: active,
     );
   }
 
-  double get progress => levelSize == null ? 1 : (levelXp / levelSize!).clamp(0, 1);
+  double get progress =>
+      levelSize == null ? 1 : (levelXp / levelSize!).clamp(0, 1);
 }

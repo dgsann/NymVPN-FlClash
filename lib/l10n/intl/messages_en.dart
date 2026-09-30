@@ -79,22 +79,28 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(label) => "${label} must be a number";
 
-  static String m24(label) => "${label} must be between 1024 and 49151";
+  static String m24(value) => "${value} coins";
 
-  static String m25(count) =>
+  static String m25(value) => "Level ${value}";
+
+  static String m26(value) => "${value} XP to the next level";
+
+  static String m27(label) => "${label} must be between 1024 and 49151";
+
+  static String m28(count) =>
       "${Intl.plural(count, one: '1 proxy', other: '${count} proxies')}";
 
-  static String m26(count) =>
+  static String m29(count) =>
       "${Intl.plural(count, one: '1 rule', other: '${count} rules')}";
 
-  static String m27(count) =>
+  static String m30(count) =>
       "${Intl.plural(count, one: '1 second', other: '${count} seconds')}";
 
-  static String m28(count) => "${count} selected";
+  static String m31(count) => "${count} selected";
 
-  static String m29(label) => "${label} must be a URL";
+  static String m32(label) => "${label} must be a URL";
 
-  static String m30(count) =>
+  static String m33(count) =>
       "${Intl.plural(count, one: '1 year ago', other: '${count} years ago')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -551,9 +557,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Enter the rule content",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),
@@ -717,6 +724,41 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nullTip": m22,
     "numberTip": m23,
+    "nymAccountActive": MessageLookupByLibrary.simpleMessage(
+      "VPN subscription active",
+    ),
+    "nymAccountCoins": m24,
+    "nymAccountError": MessageLookupByLibrary.simpleMessage(
+      "Could not load your profile. Check your connection and tap refresh.",
+    ),
+    "nymAccountHint": MessageLookupByLibrary.simpleMessage(
+      "One level and balance across the app, game and Telegram. Use the Telegram account shown here.",
+    ),
+    "nymAccountInactive": MessageLookupByLibrary.simpleMessage(
+      "VPN subscription inactive",
+    ),
+    "nymAccountLevel": m25,
+    "nymAccountLoading": MessageLookupByLibrary.simpleMessage(
+      "Loading your progress…",
+    ),
+    "nymAccountMaxLevel": MessageLookupByLibrary.simpleMessage("Maximum level"),
+    "nymAccountNextLevel": m26,
+    "nymAccountPlay": MessageLookupByLibrary.simpleMessage("Play in Telegram"),
+    "nymAccountRefresh": MessageLookupByLibrary.simpleMessage(
+      "Refresh profile",
+    ),
+    "nymAccountStale": MessageLookupByLibrary.simpleMessage(
+      "Could not refresh. Showing your last loaded progress.",
+    ),
+    "nymAccountTelegram": MessageLookupByLibrary.simpleMessage(
+      "Telegram profile",
+    ),
+    "nymAccountTitle": MessageLookupByLibrary.simpleMessage(
+      "Your NymVPN profile",
+    ),
+    "nymTelegramError": MessageLookupByLibrary.simpleMessage(
+      "Could not open Telegram. Open @nym_vpnbot manually.",
+    ),
     "onDemand": MessageLookupByLibrary.simpleMessage("On demand"),
     "onDemandDesc": MessageLookupByLibrary.simpleMessage(
       "Configure the app\'s running state for specific scenarios",
@@ -764,7 +806,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "portConflictTip": MessageLookupByLibrary.simpleMessage(
       "Please enter a different port",
     ),
-    "portTip": m24,
+    "portTip": m27,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage(
       "Prefer HTTP/3 for DoH",
     ),
@@ -797,7 +839,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "project": MessageLookupByLibrary.simpleMessage("Project"),
     "providers": MessageLookupByLibrary.simpleMessage("External resources"),
     "proxies": MessageLookupByLibrary.simpleMessage("Proxies"),
-    "proxiesCount": m25,
+    "proxiesCount": m28,
     "proxiesEmpty": MessageLookupByLibrary.simpleMessage("Proxies are empty"),
     "proxyChains": MessageLookupByLibrary.simpleMessage("Proxy chain"),
     "proxyDetectedAbnormal": MessageLookupByLibrary.simpleMessage(
@@ -1019,7 +1061,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ruleSet": MessageLookupByLibrary.simpleMessage("Rule set"),
     "ruleTarget": MessageLookupByLibrary.simpleMessage("Rule target"),
     "rules": MessageLookupByLibrary.simpleMessage("Rules"),
-    "rulesCount": m26,
+    "rulesCount": m29,
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save the changes?"),
     "script": MessageLookupByLibrary.simpleMessage("Script"),
@@ -1031,7 +1073,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "search": MessageLookupByLibrary.simpleMessage("Search"),
     "seconds": MessageLookupByLibrary.simpleMessage("seconds"),
-    "secondsCount": m27,
+    "secondsCount": m30,
     "selectAll": MessageLookupByLibrary.simpleMessage("Select all"),
     "selectMatchTarget": MessageLookupByLibrary.simpleMessage(
       "Select MATCH-TARGET",
@@ -1050,7 +1092,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Please select a sub-rule",
     ),
     "selected": MessageLookupByLibrary.simpleMessage("Selected"),
-    "selectedCountTitle": m28,
+    "selectedCountTitle": m31,
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "show": MessageLookupByLibrary.simpleMessage("Show"),
     "showLess": MessageLookupByLibrary.simpleMessage("Collapse"),
@@ -1167,7 +1209,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "urlDesc": MessageLookupByLibrary.simpleMessage(
       "Obtain a profile from a URL",
     ),
-    "urlTip": m29,
+    "urlTip": m32,
     "useHosts": MessageLookupByLibrary.simpleMessage("Use hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("Use system hosts"),
     "usedTraffic": MessageLookupByLibrary.simpleMessage("Used traffic"),
@@ -1188,7 +1230,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "WebDAV configuration",
     ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("Whitelist mode"),
-    "yearsAgo": m30,
+    "yearsAgo": m33,
     "zhCN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };
 }

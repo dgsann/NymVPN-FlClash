@@ -5114,6 +5114,156 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Your NymVPN profile`
+  String get nymAccountTitle {
+    return Intl.message(
+      'Your NymVPN profile',
+      name: 'nymAccountTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh profile`
+  String get nymAccountRefresh {
+    return Intl.message(
+      'Refresh profile',
+      name: 'nymAccountRefresh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Level {value}`
+  String nymAccountLevel(int value) {
+    return Intl.message(
+      'Level $value',
+      name: 'nymAccountLevel',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `{value} coins`
+  String nymAccountCoins(int value) {
+    return Intl.message(
+      '$value coins',
+      name: 'nymAccountCoins',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `{value} XP to the next level`
+  String nymAccountNextLevel(int value) {
+    return Intl.message(
+      '$value XP to the next level',
+      name: 'nymAccountNextLevel',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `Maximum level`
+  String get nymAccountMaxLevel {
+    return Intl.message(
+      'Maximum level',
+      name: 'nymAccountMaxLevel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `VPN subscription active`
+  String get nymAccountActive {
+    return Intl.message(
+      'VPN subscription active',
+      name: 'nymAccountActive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `VPN subscription inactive`
+  String get nymAccountInactive {
+    return Intl.message(
+      'VPN subscription inactive',
+      name: 'nymAccountInactive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Loading your progress…`
+  String get nymAccountLoading {
+    return Intl.message(
+      'Loading your progress…',
+      name: 'nymAccountLoading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not load your profile. Check your connection and tap refresh.`
+  String get nymAccountError {
+    return Intl.message(
+      'Could not load your profile. Check your connection and tap refresh.',
+      name: 'nymAccountError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not refresh. Showing your last loaded progress.`
+  String get nymAccountStale {
+    return Intl.message(
+      'Could not refresh. Showing your last loaded progress.',
+      name: 'nymAccountStale',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Play in Telegram`
+  String get nymAccountPlay {
+    return Intl.message(
+      'Play in Telegram',
+      name: 'nymAccountPlay',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Telegram profile`
+  String get nymAccountTelegram {
+    return Intl.message(
+      'Telegram profile',
+      name: 'nymAccountTelegram',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `One level and balance across the app, game and Telegram. Use the Telegram account shown here.`
+  String get nymAccountHint {
+    return Intl.message(
+      'One level and balance across the app, game and Telegram. Use the Telegram account shown here.',
+      name: 'nymAccountHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not open Telegram. Open @nym_vpnbot manually.`
+  String get nymTelegramError {
+    return Intl.message(
+      'Could not open Telegram. Open @nym_vpnbot manually.',
+      name: 'nymTelegramError',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {
