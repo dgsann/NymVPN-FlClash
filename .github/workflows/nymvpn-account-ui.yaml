@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/nymvpn-account-ui.yaml
       - test/widgets/nymvpn_account_layout_test.dart
+      - test/widgets/nymvpn_account_card_test.dart
 permissions:
   contents: read
 jobs:

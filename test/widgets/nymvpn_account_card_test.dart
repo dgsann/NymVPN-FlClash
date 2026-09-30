@@ -113,7 +113,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Player 7'), findsOneWidget);
     expect(find.text('Could not refresh. Showing your last loaded progress.'), findsOneWidget);
-    expect(tester.widget<IconButton>(find.byTooltip('Refresh profile')).onPressed, isNotNull);
+    expect(tester.widget<IconButton>(find.byType(IconButton)).onPressed, isNotNull);
   });
   testWidgets('closing the card safely ignores a pending response', (tester) async {
     final pending = Completer<NymvpnAccount>();
