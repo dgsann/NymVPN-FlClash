@@ -85,7 +85,7 @@ jobs:
           from pathlib import Path
           import re
           p=Path('pubspec.yaml')
-          p.write_text(re.sub(r'^version:.*$', 'version: 0.8.98-nymvpn.8+2026093008', p.read_text(), flags=re.M))
+          p.write_text(re.sub(r'^version:.*$', 'version: 0.8.98-nymvpn.8+8', p.read_text(), flags=re.M))
       - name: Windows build prerequisites
         if: matrix.platform == 'windows'
         shell: pwsh

@@ -767,6 +767,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nymConnectionStats": MessageLookupByLibrary.simpleMessage("Statistics"),
     "nymCustomize": MessageLookupByLibrary.simpleMessage("Customize NymVPN"),
+    "nymDesktopPowerHint": MessageLookupByLibrary.simpleMessage(
+      "Off by default. The timer restarts on connection or when conditions change. Low battery applies only to laptops running on battery. After disconnecting, apps use the direct connection. Conditions keep working while minimized; computer sleep may delay disconnection.",
+    ),
     "nymDisabled": MessageLookupByLibrary.simpleMessage("Off"),
     "nymHomeLayout": MessageLookupByLibrary.simpleMessage("Home screen"),
     "nymLayoutHint": MessageLookupByLibrary.simpleMessage(

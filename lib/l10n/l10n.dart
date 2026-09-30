@@ -5404,6 +5404,16 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Off by default. The timer restarts on connection or when conditions change. Low battery applies only to laptops running on battery. After disconnecting, apps use the direct connection. Conditions keep working while minimized; computer sleep may delay disconnection.`
+  String get nymDesktopPowerHint {
+    return Intl.message(
+      'Off by default. The timer restarts on connection or when conditions change. Low battery applies only to laptops running on battery. After disconnecting, apps use the direct connection. Conditions keep working while minimized; computer sleep may delay disconnection.',
+      name: 'nymDesktopPowerHint',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -12,7 +12,9 @@ class DesktopBattery {
 
   static Future<DesktopBattery> read() async {
     try {
-      final value = await _channel.invokeMapMethod<String, Object?>('readBattery');
+      final value = await _channel.invokeMapMethod<String, Object?>(
+        'readBattery',
+      );
       final level = value?['percent'];
       return DesktopBattery(
         percent: level is int && level >= 0 && level <= 100 ? level : null,
@@ -37,10 +39,21 @@ class DesktopPowerMonitor {
   int _generation = 0;
   bool _checking = false;
 
-  DesktopPowerMonitor({required this.readBattery, required this.stop, required this.now, this.onError});
+  DesktopPowerMonitor({
+    required this.readBattery,
+    required this.stop,
+    required this.now,
+    this.onError,
+  });
 
-  void configure({required Object? token, required int minutes, required int batteryPercent}) {
-    if (identical(token, _token) && minutes == _minutes && batteryPercent == _batteryPercent) {
+  void configure({
+    required Object? token,
+    required int minutes,
+    required int batteryPercent,
+  }) {
+    if (identical(token, _token) &&
+        minutes == _minutes &&
+        batteryPercent == _batteryPercent) {
       return;
     }
     _generation++;
@@ -52,7 +65,10 @@ class DesktopPowerMonitor {
     if (token == null || (!_hasTimer && !_hasBattery)) {
       return;
     }
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) => unawaited(check()));
+    _timer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => unawaited(check()),
+    );
   }
 
   bool get _hasTimer => _minutes >= 1 && _minutes <= 1440;
@@ -74,10 +90,19 @@ class DesktopPowerMonitor {
         return;
       }
       final level = battery.percent;
-      if (timerDue || (_hasBattery && battery.onBattery && level != null && level >= 0 && level <= _batteryPercent)) {
+      if (timerDue ||
+          (_hasBattery &&
+              battery.onBattery &&
+              level != null &&
+              level >= 0 &&
+              level <= _batteryPercent)) {
         await stop(token);
         if (generation == _generation) {
-          configure(token: null, minutes: _minutes, batteryPercent: _batteryPercent);
+          configure(
+            token: null,
+            minutes: _minutes,
+            batteryPercent: _batteryPercent,
+          );
         }
       }
     } catch (error) {

@@ -627,6 +627,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "nymAppsHint": MessageLookupByLibrary.simpleMessage("VPN を使用するアプリを選択します。"),
     "nymConnectionStats": MessageLookupByLibrary.simpleMessage("統計"),
     "nymCustomize": MessageLookupByLibrary.simpleMessage("NymVPN をカスタマイズ"),
+    "nymDesktopPowerHint": MessageLookupByLibrary.simpleMessage(
+      "初期設定はオフです。接続時または条件変更時にタイマーが再開します。低バッテリー条件はバッテリー駆動のノートPCのみ対象です。切断後は通常の接続を使用します。最小化中も動作しますが、スリープで切断が遅れる場合があります。",
+    ),
     "nymDisabled": MessageLookupByLibrary.simpleMessage("無効"),
     "nymHomeLayout": MessageLookupByLibrary.simpleMessage("ホーム画面"),
     "nymLayoutHint": MessageLookupByLibrary.simpleMessage(

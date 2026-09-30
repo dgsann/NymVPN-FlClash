@@ -539,6 +539,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "nymAppsHint": MessageLookupByLibrary.simpleMessage("选择哪些应用使用 VPN。"),
     "nymConnectionStats": MessageLookupByLibrary.simpleMessage("统计"),
     "nymCustomize": MessageLookupByLibrary.simpleMessage("自定义 NymVPN"),
+    "nymDesktopPowerHint": MessageLookupByLibrary.simpleMessage(
+      "默认关闭。连接或更改条件时计时器重新开始。低电量条件仅适用于使用电池供电的笔记本电脑。断开后应用使用直连。最小化后条件仍生效；电脑睡眠可能延迟断开。",
+    ),
     "nymDisabled": MessageLookupByLibrary.simpleMessage("关闭"),
     "nymHomeLayout": MessageLookupByLibrary.simpleMessage("主屏幕"),
     "nymLayoutHint": MessageLookupByLibrary.simpleMessage(

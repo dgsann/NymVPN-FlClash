@@ -787,6 +787,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nymConnectionStats": MessageLookupByLibrary.simpleMessage("Статистика"),
     "nymCustomize": MessageLookupByLibrary.simpleMessage("Настроить NymVPN"),
+    "nymDesktopPowerHint": MessageLookupByLibrary.simpleMessage(
+      "По умолчанию выключено. Таймер начинается заново при подключении или изменении условий. Низкий заряд учитывается только на ноутбуке, работающем от батареи. После отключения приложения используют обычный интернет. При сворачивании настройки продолжают работать; сон компьютера может задержать отключение.",
+    ),
     "nymDisabled": MessageLookupByLibrary.simpleMessage("Выключено"),
     "nymHomeLayout": MessageLookupByLibrary.simpleMessage("Главный экран"),
     "nymLayoutHint": MessageLookupByLibrary.simpleMessage(

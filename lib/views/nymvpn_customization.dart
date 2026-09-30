@@ -90,7 +90,9 @@ class NymvpnCustomizationView extends ConsumerWidget {
             ListHeader(title: strings.nymPowerTitle),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(android ? strings.nymPowerHint : strings.nymDesktopPowerHint),
+              child: Text(
+                android ? strings.nymPowerHint : strings.nymDesktopPowerHint,
+              ),
             ),
             ListItem<int>.options(
               leading: const Icon(Icons.timer_outlined),
