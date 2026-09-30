@@ -617,5 +617,41 @@
   "authorize": "許可",
   "installedAppsPermissionRequired": "アプリ一覧の権限が必要です",
   "installedAppsPermissionDesc": "このシステムでは、許可するまでインストール済みアプリの一覧が提供されません。許可すると、アプリごとのプロキシを設定できます。",
-  "installedAppsPermissionDeniedMessage": "アプリ一覧の権限が拒否されたため、インストール済みアプリを取得できません。システム設定から手動で許可してください。"
+  "installedAppsPermissionDeniedMessage": "アプリ一覧の権限が拒否されたため、インストール済みアプリを取得できません。システム設定から手動で許可してください。",
+  "nymAccountTitle": "NymVPN プロフィール",
+  "nymAccountRefresh": "プロフィールを更新",
+  "nymAccountLevel": "レベル {value}",
+  "nymAccountCoins": "{value} コイン",
+  "nymAccountNextLevel": "次のレベルまで {value} XP",
+  "nymAccountMaxLevel": "最高レベル",
+  "nymAccountActive": "VPN サブスクリプション有効",
+  "nymAccountInactive": "VPN サブスクリプション無効",
+  "nymAccountLoading": "進捗を読み込み中…",
+  "nymAccountError": "プロフィールを読み込めません。接続を確認して更新してください。",
+  "nymAccountStale": "更新できませんでした。前回の進捗を表示しています。",
+  "nymAccountPlay": "Telegram で遊ぶ",
+  "nymAccountTelegram": "Telegram プロフィール",
+  "nymAccountHint": "アプリ、ゲーム、Telegram でレベルと残高を共有します。表示中の Telegram アカウントを使ってください。",
+  "nymTelegramError": "Telegram を開けません。@nym_vpnbot を手動で開いてください。",
+  "@nymAccountLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountCoins": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountNextLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  }
 }

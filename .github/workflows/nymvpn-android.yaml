@@ -52,14 +52,16 @@ jobs:
           CC: ${{ steps.ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang
         run: go build -tags=with_gvisor -buildmode=c-shared -o "$RUNNER_TEMP/libclash-android-check.so" .
       - name: Resolve Flutter dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart run intl_utils:generate
       - name: Verify app import and subscription refresh
         run: |
-          dart format lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/common/http.dart lib/common/link.dart lib/common/constant.dart lib/models/profile.dart lib/providers/action.dart lib/providers/actions/profiles.dart test/common/nymvpn_profile_test.dart test/common/request_test.dart test/models/profile_save_test.dart
+          dart format lib/common/nymvpn_account.dart lib/views/dashboard/widgets/nymvpn_account_card.dart lib/views/dashboard/dashboard.dart lib/manager/app_manager.dart test/common/nymvpn_account_test.dart test/widgets/nymvpn_account_card_test.dart lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/common/http.dart lib/common/link.dart lib/common/constant.dart lib/models/profile.dart lib/providers/action.dart lib/providers/actions/profiles.dart test/common/nymvpn_profile_test.dart test/common/request_test.dart test/models/profile_save_test.dart
           cp pubspec.yaml "$RUNNER_TEMP/pubspec-build.yaml"
           sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
-          flutter test test/common/nymvpn_profile_test.dart test/common/request_test.dart test/common/link_test.dart test/models/profile_save_test.dart test/models/profile_test.dart test/providers/action_test.dart test/application_test.dart
-          flutter analyze lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/models/profile.dart lib/providers/action.dart
+          flutter test test/common/nymvpn_account_test.dart test/widgets/nymvpn_account_card_test.dart test/common/nymvpn_profile_test.dart test/common/request_test.dart test/common/link_test.dart test/models/profile_save_test.dart test/models/profile_test.dart test/providers/action_test.dart test/application_test.dart
+          flutter analyze lib/common/nymvpn_account.dart lib/views/dashboard/widgets/nymvpn_account_card.dart lib/views/dashboard/dashboard.dart lib/manager/app_manager.dart test/common/nymvpn_account_test.dart test/widgets/nymvpn_account_card_test.dart lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/models/profile.dart lib/providers/action.dart
           cp "$RUNNER_TEMP/pubspec-build.yaml" pubspec.yaml
       - name: Upload formatted app sources
         if: always()
@@ -80,6 +82,13 @@ jobs:
             test/common/nymvpn_profile_test.dart
             test/common/request_test.dart
             test/models/profile_save_test.dart
+            lib/common/nymvpn_account.dart
+            lib/views/dashboard/widgets/nymvpn_account_card.dart
+            lib/views/dashboard/dashboard.dart
+            lib/manager/app_manager.dart
+            test/common/nymvpn_account_test.dart
+            test/widgets/nymvpn_account_card_test.dart
+            lib/l10n/
             pubspec.lock
       - name: Install bindgen host library
         run: |
@@ -97,7 +106,7 @@ jobs:
           printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
           printf '\nstorePassword=%s\nkeyAlias=nymvpn\nkeyPassword=%s\n' "$STORE_PASSWORD" "$STORE_PASSWORD" >> android/local.properties
       - name: Build ARM64 canary
-        run: flutter build apk --release --target-platform android-arm64 --build-number=2026093005 --build-name=0.8.98-nymvpn.5
+        run: flutter build apk --release --target-platform android-arm64 --build-number=2026093006 --build-name=0.8.98-nymvpn.6
       - name: Remove signing material
         if: always()
         run: rm -f android/app/keystore.jks android/local.properties

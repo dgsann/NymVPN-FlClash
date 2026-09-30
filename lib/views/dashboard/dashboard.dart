@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widget_registry.dart';
 import 'widgets/core_status_button.dart';
 import 'widgets/start_button.dart';
+import 'widgets/nymvpn_account_card.dart';
 
 typedef _IsEditWidgetBuilder = Widget Function(bool isEdit);
 
@@ -246,11 +247,17 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                                 },
                               ),
                             )
-                          : Grid(
-                              crossAxisCount: columns,
-                              crossAxisSpacing: spacing,
-                              mainAxisSpacing: spacing,
-                              children: children,
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const NymvpnAccountPanel(),
+                                Grid(
+                                  crossAxisCount: columns,
+                                  crossAxisSpacing: spacing,
+                                  mainAxisSpacing: spacing,
+                                  children: children,
+                                ),
+                              ],
                             );
                     },
                   ),

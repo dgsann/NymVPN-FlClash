@@ -617,5 +617,41 @@
   "authorize": "Authorize",
   "installedAppsPermissionRequired": "App list permission required",
   "installedAppsPermissionDesc": "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
-  "installedAppsPermissionDeniedMessage": "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings."
+  "installedAppsPermissionDeniedMessage": "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+  "nymAccountTitle": "Your NymVPN profile",
+  "nymAccountRefresh": "Refresh profile",
+  "nymAccountLevel": "Level {value}",
+  "nymAccountCoins": "{value} coins",
+  "nymAccountNextLevel": "{value} XP to the next level",
+  "nymAccountMaxLevel": "Maximum level",
+  "nymAccountActive": "VPN subscription active",
+  "nymAccountInactive": "VPN subscription inactive",
+  "nymAccountLoading": "Loading your progress…",
+  "nymAccountError": "Could not load your profile. Check your connection and tap refresh.",
+  "nymAccountStale": "Could not refresh. Showing your last loaded progress.",
+  "nymAccountPlay": "Play in Telegram",
+  "nymAccountTelegram": "Telegram profile",
+  "nymAccountHint": "One level and balance across the app, game and Telegram. Use the Telegram account shown here.",
+  "nymTelegramError": "Could not open Telegram. Open @nym_vpnbot manually.",
+  "@nymAccountLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountCoins": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountNextLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  }
 }

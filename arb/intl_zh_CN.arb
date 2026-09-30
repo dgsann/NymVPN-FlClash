@@ -617,5 +617,41 @@
   "authorize": "授权",
   "installedAppsPermissionRequired": "需要读取应用列表权限",
   "installedAppsPermissionDesc": "当前系统在授权前不会提供已安装的应用列表，授权后即可配置分应用代理。",
-  "installedAppsPermissionDeniedMessage": "读取应用列表权限已被拒绝，无法获取已安装的应用。请前往系统设置手动开启。"
+  "installedAppsPermissionDeniedMessage": "读取应用列表权限已被拒绝，无法获取已安装的应用。请前往系统设置手动开启。",
+  "nymAccountTitle": "我的 NymVPN 资料",
+  "nymAccountRefresh": "刷新资料",
+  "nymAccountLevel": "等级 {value}",
+  "nymAccountCoins": "{value} 金币",
+  "nymAccountNextLevel": "距离下一级还需 {value} XP",
+  "nymAccountMaxLevel": "已达最高等级",
+  "nymAccountActive": "VPN 订阅有效",
+  "nymAccountInactive": "VPN 订阅无效",
+  "nymAccountLoading": "正在加载进度…",
+  "nymAccountError": "无法加载资料。请检查连接后刷新。",
+  "nymAccountStale": "刷新失败。显示上次加载的进度。",
+  "nymAccountPlay": "在 Telegram 中游玩",
+  "nymAccountTelegram": "Telegram 资料",
+  "nymAccountHint": "应用、游戏与 Telegram 共享等级和余额。请使用此处显示的 Telegram 账号。",
+  "nymTelegramError": "无法打开 Telegram。请手动打开 @nym_vpnbot。",
+  "@nymAccountLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountCoins": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountNextLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  }
 }

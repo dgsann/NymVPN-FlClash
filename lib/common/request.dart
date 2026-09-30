@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'nymvpn_account.dart';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -37,6 +38,30 @@ class Request {
         return client;
       },
     );
+  }
+
+  Future<NymvpnAccount> getNymvpnAccount(String subscription) async {
+    final access = NymvpnAccountAccess.fromSubscription(subscription);
+    if (access == null) throw const FormatException('Unsupported subscription');
+    final token = CancelToken();
+    final timer = Timer(const Duration(seconds: 20), () => token.cancel());
+    try {
+      final response = await _clashDio.get<Map<String, dynamic>>(
+        access.endpoint.toString(),
+        cancelToken: token,
+        options: Options(
+          headers: {'Authorization': 'Bearer ${access.token}'},
+          responseType: ResponseType.json,
+          followRedirects: false,
+          receiveTimeout: const Duration(seconds: 12),
+        ),
+      );
+      return NymvpnAccount.fromJson(response.data!, access.userId);
+    } catch (_) {
+      throw StateError('NymVPN account unavailable');
+    } finally {
+      timer.cancel();
+    }
   }
 
   Future<Response<Uint8List>> getFileResponseForUrl(String url) async {

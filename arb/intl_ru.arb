@@ -617,5 +617,41 @@
   "authorize": "Разрешить",
   "installedAppsPermissionRequired": "Требуется разрешение на список приложений",
   "installedAppsPermissionDesc": "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
-  "installedAppsPermissionDeniedMessage": "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках."
+  "installedAppsPermissionDeniedMessage": "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+  "nymAccountTitle": "Мой профиль NymVPN",
+  "nymAccountRefresh": "Обновить профиль",
+  "nymAccountLevel": "Уровень {value}",
+  "nymAccountCoins": "{value} монет",
+  "nymAccountNextLevel": "До следующего уровня: {value} XP",
+  "nymAccountMaxLevel": "Максимальный уровень",
+  "nymAccountActive": "Подписка VPN активна",
+  "nymAccountInactive": "Подписка VPN неактивна",
+  "nymAccountLoading": "Загружаем твой прогресс…",
+  "nymAccountError": "Не удалось загрузить профиль. Проверь подключение и нажми обновить.",
+  "nymAccountStale": "Не удалось обновить. Показан последний загруженный прогресс.",
+  "nymAccountPlay": "Играть в Telegram",
+  "nymAccountTelegram": "Профиль в Telegram",
+  "nymAccountHint": "Общие уровень и баланс в приложении, игре и Telegram. Играй с указанного здесь Telegram-аккаунта.",
+  "nymTelegramError": "Не удалось открыть Telegram. Открой @nym_vpnbot вручную.",
+  "@nymAccountLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountCoins": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "@nymAccountNextLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  }
 }
