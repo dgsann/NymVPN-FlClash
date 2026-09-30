@@ -25,6 +25,25 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  power_channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      flutter_controller_->engine()->messenger(), "com.follow.clash/power",
+      &flutter::StandardMethodCodec::GetInstance());
+  power_channel_->SetMethodCallHandler([](const auto& call, auto result) {
+    if (call.method_name() != "readBattery") {
+      result->NotImplemented();
+      return;
+    }
+    SYSTEM_POWER_STATUS status{};
+    if (!GetSystemPowerStatus(&status) || status.BatteryFlag == 255 ||
+        (status.BatteryFlag & 128) || status.BatteryLifePercent > 100 || status.ACLineStatus > 1) {
+      result->Success();
+      return;
+    }
+    result->Success(flutter::EncodableValue(flutter::EncodableMap{
+        {flutter::EncodableValue("percent"), flutter::EncodableValue(static_cast<int>(status.BatteryLifePercent))},
+        {flutter::EncodableValue("onBattery"), flutter::EncodableValue(status.ACLineStatus == 0 && !(status.BatteryFlag & 8))},
+    }));
+  });
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -40,6 +59,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  power_channel_.reset();
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }

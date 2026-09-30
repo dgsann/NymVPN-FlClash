@@ -676,5 +676,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "nymDesktopPowerHint": "Off by default. The timer restarts on connection or when conditions change. Low battery applies only to laptops running on battery. After disconnecting, apps use the direct connection. Conditions keep working while minimized; computer sleep may delay disconnection."
 }

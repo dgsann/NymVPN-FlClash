@@ -10,14 +10,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NymvpnCustomizationView extends ConsumerWidget {
-  const NymvpnCustomizationView({super.key, this.isAndroid});
+  const NymvpnCustomizationView({super.key, this.isAndroid, this.isDesktop});
 
   final bool? isAndroid;
+  final bool? isDesktop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = context.appLocalizations;
     final android = isAndroid ?? system.isAndroid;
+    final desktop = isDesktop ?? (system.isWindows || system.isMacOS);
     final settings = ref.watch(appSettingProvider);
     void layout(List<DashboardWidget> widgets) {
       ref
@@ -84,11 +86,11 @@ class NymvpnCustomizationView extends ConsumerWidget {
                         .toList(),
             ),
           ),
-          if (android) ...[
+          if (android || desktop) ...[
             ListHeader(title: strings.nymPowerTitle),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(strings.nymPowerHint),
+              child: Text(android ? strings.nymPowerHint : strings.nymDesktopPowerHint),
             ),
             ListItem<int>.options(
               leading: const Icon(Icons.timer_outlined),

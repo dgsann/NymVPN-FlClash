@@ -1,0 +1,131 @@
+name: NymVPN desktop
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/nymvpn-app-refresh]
+    paths: [.github/workflows/nymvpn-desktop.yaml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.1'
+          cache: true
+      - name: Verify desktop automation and connection lifecycle
+        run: |
+          sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
+          flutter pub get
+          dart run intl_utils:generate
+          dart run build_runner build --delete-conflicting-outputs
+          dart format lib/common/desktop_power.dart lib/providers/action.dart lib/providers/actions/setup.dart lib/views/nymvpn_customization.dart test/common/desktop_power_test.dart
+          flutter test test/common/desktop_power_test.dart test/providers/setup_action_test.dart test/core/desktop/ test/core/service_test.dart test/providers/system_action_test.dart test/widgets/nymvpn_customization_test.dart test/models/nymvpn_customization_test.dart test/common/nymvpn_profile_test.dart
+          flutter analyze lib/common/desktop_power.dart lib/providers/action.dart lib/views/nymvpn_customization.dart test/common/desktop_power_test.dart
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NymVPN-desktop-generated
+          path: |
+            lib/common/desktop_power.dart
+            lib/providers/action.dart
+            lib/providers/actions/setup.dart
+            lib/views/nymvpn_customization.dart
+            test/common/desktop_power_test.dart
+            lib/l10n/
+            lib/models/generated/
+            lib/providers/generated/
+            lib/database/generated/
+  build:
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            platform: windows
+            arch: x64
+          - os: macos-15-intel
+            platform: macos
+            arch: x64
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/download-artifact@v4
+        with:
+          name: NymVPN-desktop-generated
+          path: .
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: core/go.sum
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.1'
+          cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: nymvpn-${{ matrix.platform }}-${{ matrix.arch }}
+          workspaces: services/helper
+          cache-directories: .dart_tool/hooks_runner
+      - name: Prepare desktop version
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('pubspec.yaml')
+          p.write_text(re.sub(r'^version:.*$', 'version: 0.8.98-nymvpn.8+2026093008', p.read_text(), flags=re.M))
+      - name: Windows build prerequisites
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          git config --global core.longpaths true
+          'C:\Program Files (x86)\Inno Setup 6' | Out-File -FilePath $env:GITHUB_PATH -Append
+          "$env:LOCALAPPDATA\Pub\Cache\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          'LIBCLANG_PATH=C:\Program Files\LLVM\bin' | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: macOS build prerequisites
+        if: matrix.platform == 'macos'
+        run: |
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+          sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
+          xcodebuild -version
+          npm install -g appdmg
+      - name: Build desktop packages
+        run: |
+          flutter pub get
+          dart setup.dart ${{ matrix.platform }} --env stable -v
+      - name: Verify and name packages
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib, shutil, subprocess
+          platform='${{ matrix.platform }}'; arch='${{ matrix.arch }}'
+          out=Path('nymvpn-release'); out.mkdir()
+          expected=['.exe','.zip'] if platform=='windows' else ['.dmg']
+          for ext in expected:
+              candidates=[p for p in Path('dist').rglob('*'+ext) if p.is_file()]
+              assert len(candidates)==1, (ext,candidates)
+              target=out/f'NymVPN-0.8.98-nymvpn.8-{platform}-{arch}{ext}'
+              shutil.copyfile(candidates[0],target)
+          if platform=='macos':
+              app=Path('build/macos/Build/Products/Release/NymVPN.app')
+              assert app.is_dir()
+              subprocess.run(['codesign','--verify','--deep','--strict',str(app)],check=True)
+              subprocess.run(['lipo','-archs',str(app/'Contents/MacOS/NymVPN')],check=True)
+          (out/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in sorted(out.iterdir())))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NymVPN-${{ matrix.platform }}-${{ matrix.arch }}
+          path: nymvpn-release/
+          if-no-files-found: error

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fl_clash/common/desktop_power.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:fl_clash/common/nymvpn_profile.dart';
 import 'package:fl_clash/common/profile_refresh.dart';

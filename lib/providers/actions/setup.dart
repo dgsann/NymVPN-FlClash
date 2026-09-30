@@ -19,6 +19,7 @@ class SetupAction extends _$SetupAction {
   CoreController get _core => ref.read(coreHandlerProvider);
 
   Timer? _runtimeTimer;
+  DesktopPowerMonitor? _desktopPower;
   final _setupScheduler = SerialTaskScheduler();
   final _listenerScheduler = SerialTaskScheduler();
   _RunRequest? _latestRunRequest;
@@ -32,7 +33,34 @@ class SetupAction extends _$SetupAction {
     ref.onDispose(() {
       _runtimeTimer?.cancel();
       _runtimeTimer = null;
+      _desktopPower?.dispose();
     });
+    if (system.isWindows || system.isMacOS) {
+      final clock = Stopwatch()..start();
+      _desktopPower = DesktopPowerMonitor(
+        readBattery: DesktopBattery.read,
+        now: () => clock.elapsedMilliseconds,
+        stop: (token) async {
+          if (ref.mounted && identical(token, _latestRunRequest) && _isRunning && _runningTransitions == 0) {
+            await setRunning(false);
+          }
+        },
+        onError: (error) => commonPrint.log('Automatic disconnect failed: ${error.runtimeType}'),
+      );
+      ref.listen(appSettingProvider.select((state) => (state.nymAutoStopMinutes, state.nymStopBatteryPercent)), (_, _) => _syncDesktopPower());
+    }
+  }
+
+  void _syncDesktopPower() {
+    if (_desktopPower == null || !ref.mounted) {
+      return;
+    }
+    final settings = ref.read(appSettingProvider);
+    _desktopPower!.configure(
+      token: _isRunning && _runningTransitions == 0 ? _latestRunRequest : null,
+      minutes: settings.nymAutoStopMinutes,
+      batteryPercent: settings.nymStopBatteryPercent,
+    );
   }
 
   SetupParams get _setupParams {
@@ -129,8 +157,10 @@ class SetupAction extends _$SetupAction {
       globalState.needInitStatus = false;
     }
     _runningTransitions++;
+    _syncDesktopPower();
     return (running ? _start(request) : _stop(request)).whenComplete(() {
       _runningTransitions--;
+      _syncDesktopPower();
       unawaited(reconcilePowerStop());
     });
   }
