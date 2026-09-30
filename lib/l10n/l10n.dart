@@ -5264,6 +5264,146 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Customize NymVPN`
+  String get nymCustomize {
+    return Intl.message(
+      'Customize NymVPN',
+      name: 'nymCustomize',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Home screen`
+  String get nymHomeLayout {
+    return Intl.message(
+      'Home screen',
+      name: 'nymHomeLayout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tap the pencil on the home screen: drag cards, remove them with − and restore them with +. Presets replace the layout, not your VPN settings.`
+  String get nymLayoutHint {
+    return Intl.message(
+      'Tap the pencil on the home screen: drag cards, remove them with − and restore them with +. Presets replace the layout, not your VPN settings.',
+      name: 'nymLayoutHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Minimal`
+  String get nymMinimal {
+    return Intl.message('Minimal', name: 'nymMinimal', desc: '', args: []);
+  }
+
+  /// `Standard`
+  String get nymStandard {
+    return Intl.message('Standard', name: 'nymStandard', desc: '', args: []);
+  }
+
+  /// `Statistics`
+  String get nymConnectionStats {
+    return Intl.message(
+      'Statistics',
+      name: 'nymConnectionStats',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Battery and auto disconnect`
+  String get nymPowerTitle {
+    return Intl.message(
+      'Battery and auto disconnect',
+      name: 'nymPowerTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Off by default. The timer starts on connection or when conditions change. Low battery applies only while unplugged. Apps use the direct connection after stopping; Android blocking connections without VPN will block internet. Deep sleep may delay the timer.`
+  String get nymPowerHint {
+    return Intl.message(
+      'Off by default. The timer starts on connection or when conditions change. Low battery applies only while unplugged. Apps use the direct connection after stopping; Android blocking connections without VPN will block internet. Deep sleep may delay the timer.',
+      name: 'nymPowerHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disconnect after`
+  String get nymStopTimer {
+    return Intl.message(
+      'Disconnect after',
+      name: 'nymStopTimer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disconnect at battery level`
+  String get nymLowBattery {
+    return Intl.message(
+      'Disconnect at battery level',
+      name: 'nymLowBattery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Off`
+  String get nymDisabled {
+    return Intl.message('Off', name: 'nymDisabled', desc: '', args: []);
+  }
+
+  /// `{value} min`
+  String nymMinutes(int value) {
+    return Intl.message(
+      '$value min',
+      name: 'nymMinutes',
+      desc: '',
+      args: [value],
+    );
+  }
+
+  /// `More customization`
+  String get nymMoreCustomization {
+    return Intl.message(
+      'More customization',
+      name: 'nymMoreCustomization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apps using VPN`
+  String get nymApps {
+    return Intl.message('Apps using VPN', name: 'nymApps', desc: '', args: []);
+  }
+
+  /// `Choose which apps should use the VPN.`
+  String get nymAppsHint {
+    return Intl.message(
+      'Choose which apps should use the VPN.',
+      name: 'nymAppsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add and select your NymVPN subscription link to see your game progress.`
+  String get nymAccountMissing {
+    return Intl.message(
+      'Add and select your NymVPN subscription link to see your game progress.',
+      name: 'nymAccountMissing',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

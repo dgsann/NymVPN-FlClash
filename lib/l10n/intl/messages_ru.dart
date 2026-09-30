@@ -85,22 +85,24 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m26(value) => "До следующего уровня: ${value} XP";
 
-  static String m27(label) =>
+  static String m27(value) => "${value} мин";
+
+  static String m28(label) =>
       "Значение «${label}» должно быть от 1024 до 49151";
 
-  static String m28(count) => "${count} прокси";
-
-  static String m29(count) =>
-      "${Intl.plural(count, one: '${count} правило', few: '${count} правила', many: '${count} правил', other: '${count} правила')}";
+  static String m29(count) => "${count} прокси";
 
   static String m30(count) =>
+      "${Intl.plural(count, one: '${count} правило', few: '${count} правила', many: '${count} правил', other: '${count} правила')}";
+
+  static String m31(count) =>
       "${Intl.plural(count, one: '${count} секунда', few: '${count} секунды', many: '${count} секунд', other: '${count} секунды')}";
 
-  static String m31(count) => "Выбрано: ${count}";
+  static String m32(count) => "Выбрано: ${count}";
 
-  static String m32(label) => "Значение «${label}» должно быть URL";
+  static String m33(label) => "Значение «${label}» должно быть URL";
 
-  static String m33(count) =>
+  static String m34(count) =>
       "${Intl.plural(count, one: '${count} год назад', few: '${count} года назад', many: '${count} лет назад', other: '${count} года назад')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -762,6 +764,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "nymAccountMaxLevel": MessageLookupByLibrary.simpleMessage(
       "Максимальный уровень",
     ),
+    "nymAccountMissing": MessageLookupByLibrary.simpleMessage(
+      "Добавь и выбери свою ссылку подписки NymVPN, чтобы увидеть игровой прогресс.",
+    ),
     "nymAccountNextLevel": m26,
     "nymAccountPlay": MessageLookupByLibrary.simpleMessage("Играть в Telegram"),
     "nymAccountRefresh": MessageLookupByLibrary.simpleMessage(
@@ -775,6 +780,35 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "nymAccountTitle": MessageLookupByLibrary.simpleMessage(
       "Мой профиль NymVPN",
+    ),
+    "nymApps": MessageLookupByLibrary.simpleMessage("Приложения через VPN"),
+    "nymAppsHint": MessageLookupByLibrary.simpleMessage(
+      "Выбери, какие приложения должны пользоваться VPN.",
+    ),
+    "nymConnectionStats": MessageLookupByLibrary.simpleMessage("Статистика"),
+    "nymCustomize": MessageLookupByLibrary.simpleMessage("Настроить NymVPN"),
+    "nymDisabled": MessageLookupByLibrary.simpleMessage("Выключено"),
+    "nymHomeLayout": MessageLookupByLibrary.simpleMessage("Главный экран"),
+    "nymLayoutHint": MessageLookupByLibrary.simpleMessage(
+      "Нажми карандаш на главном экране: перетаскивай блоки, убирай их кнопкой − и возвращай через +. Готовый набор заменяет расположение блоков, не настройки VPN.",
+    ),
+    "nymLowBattery": MessageLookupByLibrary.simpleMessage(
+      "Отключать при заряде не выше",
+    ),
+    "nymMinimal": MessageLookupByLibrary.simpleMessage("Минимум"),
+    "nymMinutes": m27,
+    "nymMoreCustomization": MessageLookupByLibrary.simpleMessage(
+      "Ещё настройки",
+    ),
+    "nymPowerHint": MessageLookupByLibrary.simpleMessage(
+      "По умолчанию VPN не отключается сам. Таймер начинается при подключении или изменении условий. Низкий заряд учитывается только без зарядки. После остановки приложения идут без VPN; при системном запрете соединений без VPN интернет пропадёт. В глубоком сне Android может задержать таймер.",
+    ),
+    "nymPowerTitle": MessageLookupByLibrary.simpleMessage(
+      "Батарея и автоотключение",
+    ),
+    "nymStandard": MessageLookupByLibrary.simpleMessage("Стандарт"),
+    "nymStopTimer": MessageLookupByLibrary.simpleMessage(
+      "Отключать по таймеру",
     ),
     "nymTelegramError": MessageLookupByLibrary.simpleMessage(
       "Не удалось открыть Telegram. Открой @nym_vpnbot вручную.",
@@ -836,7 +870,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "portConflictTip": MessageLookupByLibrary.simpleMessage(
       "Введите другой порт",
     ),
-    "portTip": m27,
+    "portTip": m28,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage(
       "Предпочитать HTTP/3 для DoH",
     ),
@@ -871,7 +905,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "project": MessageLookupByLibrary.simpleMessage("Проект"),
     "providers": MessageLookupByLibrary.simpleMessage("Внешние ресурсы"),
     "proxies": MessageLookupByLibrary.simpleMessage("Прокси"),
-    "proxiesCount": m28,
+    "proxiesCount": m29,
     "proxiesEmpty": MessageLookupByLibrary.simpleMessage("Список прокси пуст"),
     "proxyChains": MessageLookupByLibrary.simpleMessage("Цепочка прокси"),
     "proxyDetectedAbnormal": MessageLookupByLibrary.simpleMessage(
@@ -1107,7 +1141,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ruleSet": MessageLookupByLibrary.simpleMessage("Набор правил"),
     "ruleTarget": MessageLookupByLibrary.simpleMessage("Цель правила"),
     "rules": MessageLookupByLibrary.simpleMessage("Правила"),
-    "rulesCount": m29,
+    "rulesCount": m30,
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения?"),
     "script": MessageLookupByLibrary.simpleMessage("Скрипт"),
@@ -1119,7 +1153,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "search": MessageLookupByLibrary.simpleMessage("Поиск"),
     "seconds": MessageLookupByLibrary.simpleMessage("секунд"),
-    "secondsCount": m30,
+    "secondsCount": m31,
     "selectAll": MessageLookupByLibrary.simpleMessage("Выбрать всё"),
     "selectMatchTarget": MessageLookupByLibrary.simpleMessage(
       "Выбрать MATCH-TARGET",
@@ -1138,7 +1172,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Выберите подправило",
     ),
     "selected": MessageLookupByLibrary.simpleMessage("Выбрано"),
-    "selectedCountTitle": m31,
+    "selectedCountTitle": m32,
     "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "show": MessageLookupByLibrary.simpleMessage("Показать"),
     "showLess": MessageLookupByLibrary.simpleMessage("Свернуть"),
@@ -1263,7 +1297,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("Отдача"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("Получить профиль по URL"),
-    "urlTip": m32,
+    "urlTip": m33,
     "useHosts": MessageLookupByLibrary.simpleMessage("Использовать hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Использовать системный hosts",
@@ -1290,7 +1324,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "whitelistMode": MessageLookupByLibrary.simpleMessage(
       "Режим белого списка",
     ),
-    "yearsAgo": m33,
+    "yearsAgo": m34,
     "zhCN": MessageLookupByLibrary.simpleMessage("Упрощённый китайский"),
   };
 }

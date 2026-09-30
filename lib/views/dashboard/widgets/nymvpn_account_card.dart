@@ -21,11 +21,14 @@ class NymvpnAccountPanel extends ConsumerWidget {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(context.appLocalizations.nymAccountTitle),
-            const SizedBox(height: 8),
-            Text(context.appLocalizations.nymAccountMissing),
-          ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.appLocalizations.nymAccountTitle),
+              const SizedBox(height: 8),
+              Text(context.appLocalizations.nymAccountMissing),
+            ],
+          ),
         ),
       );
     }

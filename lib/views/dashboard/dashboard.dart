@@ -79,9 +79,11 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         IconButton(
           tooltip: context.appLocalizations.nymCustomize,
           icon: const Icon(Icons.tune),
-          onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-            builder: (_) => const NymvpnCustomizationView(),
-          )),
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const NymvpnCustomizationView(),
+            ),
+          ),
         ),
       if (isEdit)
         ValueListenableBuilder(

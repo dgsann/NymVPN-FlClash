@@ -77,19 +77,21 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m26(value) => "距离下一级还需 ${value} XP";
 
-  static String m27(label) => "${label} 必须在 1024 到 49151 之间";
+  static String m27(value) => "${value} 分钟";
 
-  static String m28(count) => "${count} 个代理";
+  static String m28(label) => "${label} 必须在 1024 到 49151 之间";
 
-  static String m29(count) => "${count} 条规则";
+  static String m29(count) => "${count} 个代理";
 
-  static String m30(count) => "${count} 秒";
+  static String m30(count) => "${count} 条规则";
 
-  static String m31(count) => "已选择 ${count} 项";
+  static String m31(count) => "${count} 秒";
 
-  static String m32(label) => "${label}必须为URL";
+  static String m32(count) => "已选择 ${count} 项";
 
-  static String m33(count) => "${count} 年前";
+  static String m33(label) => "${label}必须为URL";
+
+  static String m34(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -524,12 +526,34 @@ class MessageLookup extends MessageLookupByLibrary {
     "nymAccountLevel": m25,
     "nymAccountLoading": MessageLookupByLibrary.simpleMessage("正在加载进度…"),
     "nymAccountMaxLevel": MessageLookupByLibrary.simpleMessage("已达最高等级"),
+    "nymAccountMissing": MessageLookupByLibrary.simpleMessage(
+      "添加并选择 NymVPN 订阅链接以查看游戏进度。",
+    ),
     "nymAccountNextLevel": m26,
     "nymAccountPlay": MessageLookupByLibrary.simpleMessage("在 Telegram 中游玩"),
     "nymAccountRefresh": MessageLookupByLibrary.simpleMessage("刷新资料"),
     "nymAccountStale": MessageLookupByLibrary.simpleMessage("刷新失败。显示上次加载的进度。"),
     "nymAccountTelegram": MessageLookupByLibrary.simpleMessage("Telegram 资料"),
     "nymAccountTitle": MessageLookupByLibrary.simpleMessage("我的 NymVPN 资料"),
+    "nymApps": MessageLookupByLibrary.simpleMessage("使用 VPN 的应用"),
+    "nymAppsHint": MessageLookupByLibrary.simpleMessage("选择哪些应用使用 VPN。"),
+    "nymConnectionStats": MessageLookupByLibrary.simpleMessage("统计"),
+    "nymCustomize": MessageLookupByLibrary.simpleMessage("自定义 NymVPN"),
+    "nymDisabled": MessageLookupByLibrary.simpleMessage("关闭"),
+    "nymHomeLayout": MessageLookupByLibrary.simpleMessage("主屏幕"),
+    "nymLayoutHint": MessageLookupByLibrary.simpleMessage(
+      "点击主屏幕的铅笔：拖动卡片，用 − 隐藏，用 + 恢复。预设只替换布局，不改变 VPN 设置。",
+    ),
+    "nymLowBattery": MessageLookupByLibrary.simpleMessage("电量不高于此值时断开"),
+    "nymMinimal": MessageLookupByLibrary.simpleMessage("精简"),
+    "nymMinutes": m27,
+    "nymMoreCustomization": MessageLookupByLibrary.simpleMessage("更多设置"),
+    "nymPowerHint": MessageLookupByLibrary.simpleMessage(
+      "默认关闭。连接或条件变更时开始计时。低电量条件仅在未充电时生效。断开后应用直接联网；若系统禁止 VPN 外连接，将无法上网。深度休眠可能延迟计时器。",
+    ),
+    "nymPowerTitle": MessageLookupByLibrary.simpleMessage("电池与自动断开"),
+    "nymStandard": MessageLookupByLibrary.simpleMessage("标准"),
+    "nymStopTimer": MessageLookupByLibrary.simpleMessage("定时断开"),
     "nymTelegramError": MessageLookupByLibrary.simpleMessage(
       "无法打开 Telegram。请手动打开 @nym_vpnbot。",
     ),
@@ -566,7 +590,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "port": MessageLookupByLibrary.simpleMessage("端口"),
     "portConflictTip": MessageLookupByLibrary.simpleMessage("请输入不同的端口"),
-    "portTip": m27,
+    "portTip": m28,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage("优先使用DOH的http/3"),
     "prerequisites": MessageLookupByLibrary.simpleMessage("前置条件"),
     "pressKeyboard": MessageLookupByLibrary.simpleMessage("请按下按键"),
@@ -595,7 +619,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "project": MessageLookupByLibrary.simpleMessage("项目"),
     "providers": MessageLookupByLibrary.simpleMessage("外部资源"),
     "proxies": MessageLookupByLibrary.simpleMessage("代理"),
-    "proxiesCount": m28,
+    "proxiesCount": m29,
     "proxiesEmpty": MessageLookupByLibrary.simpleMessage("代理为空"),
     "proxyChains": MessageLookupByLibrary.simpleMessage("代理链"),
     "proxyDetectedAbnormal": MessageLookupByLibrary.simpleMessage(
@@ -753,7 +777,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ruleSet": MessageLookupByLibrary.simpleMessage("规则集"),
     "ruleTarget": MessageLookupByLibrary.simpleMessage("规则目标"),
     "rules": MessageLookupByLibrary.simpleMessage("规则"),
-    "rulesCount": m29,
+    "rulesCount": m30,
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("是否保存更改？"),
     "script": MessageLookupByLibrary.simpleMessage("脚本"),
@@ -763,7 +787,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "scrollToSelected": MessageLookupByLibrary.simpleMessage("滚动到已选"),
     "search": MessageLookupByLibrary.simpleMessage("搜索"),
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
-    "secondsCount": m30,
+    "secondsCount": m31,
     "selectAll": MessageLookupByLibrary.simpleMessage("全选"),
     "selectMatchTarget": MessageLookupByLibrary.simpleMessage(
       "选择 MATCH-TARGET",
@@ -774,7 +798,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectSplitStrategy": MessageLookupByLibrary.simpleMessage("请选择分流策略"),
     "selectSubRule": MessageLookupByLibrary.simpleMessage("请选择子规则"),
     "selected": MessageLookupByLibrary.simpleMessage("已选择"),
-    "selectedCountTitle": m31,
+    "selectedCountTitle": m32,
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "show": MessageLookupByLibrary.simpleMessage("显示"),
     "showLess": MessageLookupByLibrary.simpleMessage("收起"),
@@ -865,7 +889,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("通过URL获取配置文件"),
-    "urlTip": m32,
+    "urlTip": m33,
     "useHosts": MessageLookupByLibrary.simpleMessage("使用Hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("使用系统Hosts"),
     "usedTraffic": MessageLookupByLibrary.simpleMessage("已用流量"),
@@ -882,7 +906,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "vpnTip": MessageLookupByLibrary.simpleMessage("重启VPN后改变生效"),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV配置"),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("白名单模式"),
-    "yearsAgo": m33,
+    "yearsAgo": m34,
     "zhCN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };
 }

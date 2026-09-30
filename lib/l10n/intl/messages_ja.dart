@@ -77,19 +77,21 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m26(value) => "次のレベルまで ${value} XP";
 
-  static String m27(label) => "${label} は 1024〜49151 の範囲で指定してください";
+  static String m27(value) => "${value} 分";
 
-  static String m28(count) => "プロキシ ${count} 件";
+  static String m28(label) => "${label} は 1024〜49151 の範囲で指定してください";
 
-  static String m29(count) => "ルール ${count} 件";
+  static String m29(count) => "プロキシ ${count} 件";
 
-  static String m30(count) => "${count} 秒";
+  static String m30(count) => "ルール ${count} 件";
 
-  static String m31(count) => "${count} 件選択中";
+  static String m31(count) => "${count} 秒";
 
-  static String m32(label) => "${label}はURLである必要があります";
+  static String m32(count) => "${count} 件選択中";
 
-  static String m33(count) => "${count} 年前";
+  static String m33(label) => "${label}はURLである必要があります";
+
+  static String m34(count) => "${count} 年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -608,6 +610,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "nymAccountLevel": m25,
     "nymAccountLoading": MessageLookupByLibrary.simpleMessage("進捗を読み込み中…"),
     "nymAccountMaxLevel": MessageLookupByLibrary.simpleMessage("最高レベル"),
+    "nymAccountMissing": MessageLookupByLibrary.simpleMessage(
+      "NymVPN の購読リンクを追加して選択するとゲームの進捗が表示されます。",
+    ),
     "nymAccountNextLevel": m26,
     "nymAccountPlay": MessageLookupByLibrary.simpleMessage("Telegram で遊ぶ"),
     "nymAccountRefresh": MessageLookupByLibrary.simpleMessage("プロフィールを更新"),
@@ -618,6 +623,25 @@ class MessageLookup extends MessageLookupByLibrary {
       "Telegram プロフィール",
     ),
     "nymAccountTitle": MessageLookupByLibrary.simpleMessage("NymVPN プロフィール"),
+    "nymApps": MessageLookupByLibrary.simpleMessage("VPN を使うアプリ"),
+    "nymAppsHint": MessageLookupByLibrary.simpleMessage("VPN を使用するアプリを選択します。"),
+    "nymConnectionStats": MessageLookupByLibrary.simpleMessage("統計"),
+    "nymCustomize": MessageLookupByLibrary.simpleMessage("NymVPN をカスタマイズ"),
+    "nymDisabled": MessageLookupByLibrary.simpleMessage("無効"),
+    "nymHomeLayout": MessageLookupByLibrary.simpleMessage("ホーム画面"),
+    "nymLayoutHint": MessageLookupByLibrary.simpleMessage(
+      "ホームの鉛筆でカードを移動し、− で非表示、+ で復元できます。プリセットは配置のみを変更します。",
+    ),
+    "nymLowBattery": MessageLookupByLibrary.simpleMessage("このバッテリー残量以下で切断"),
+    "nymMinimal": MessageLookupByLibrary.simpleMessage("最小"),
+    "nymMinutes": m27,
+    "nymMoreCustomization": MessageLookupByLibrary.simpleMessage("その他の設定"),
+    "nymPowerHint": MessageLookupByLibrary.simpleMessage(
+      "初期状態は無効です。タイマーは接続時または条件変更時に開始します。低残量は充電中には適用しません。停止後は VPN 外で通信します。VPN 外の通信を禁止している場合は通信できません。スリープ中はタイマーが遅れる場合があります。",
+    ),
+    "nymPowerTitle": MessageLookupByLibrary.simpleMessage("バッテリーと自動切断"),
+    "nymStandard": MessageLookupByLibrary.simpleMessage("標準"),
+    "nymStopTimer": MessageLookupByLibrary.simpleMessage("タイマーで切断"),
     "nymTelegramError": MessageLookupByLibrary.simpleMessage(
       "Telegram を開けません。@nym_vpnbot を手動で開いてください。",
     ),
@@ -660,7 +684,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "port": MessageLookupByLibrary.simpleMessage("ポート"),
     "portConflictTip": MessageLookupByLibrary.simpleMessage("別のポートを入力してください"),
-    "portTip": m27,
+    "portTip": m28,
     "preferH3Desc": MessageLookupByLibrary.simpleMessage("DoHでHTTP/3を優先します"),
     "prerequisites": MessageLookupByLibrary.simpleMessage("前提条件"),
     "pressKeyboard": MessageLookupByLibrary.simpleMessage("キーを押してください"),
@@ -689,7 +713,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "project": MessageLookupByLibrary.simpleMessage("プロジェクト"),
     "providers": MessageLookupByLibrary.simpleMessage("外部リソース"),
     "proxies": MessageLookupByLibrary.simpleMessage("プロキシ"),
-    "proxiesCount": m28,
+    "proxiesCount": m29,
     "proxiesEmpty": MessageLookupByLibrary.simpleMessage("プロキシが空です"),
     "proxyChains": MessageLookupByLibrary.simpleMessage("プロキシチェーン"),
     "proxyDetectedAbnormal": MessageLookupByLibrary.simpleMessage(
@@ -883,7 +907,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ruleSet": MessageLookupByLibrary.simpleMessage("ルールセット"),
     "ruleTarget": MessageLookupByLibrary.simpleMessage("ルールターゲット"),
     "rules": MessageLookupByLibrary.simpleMessage("ルール"),
-    "rulesCount": m29,
+    "rulesCount": m30,
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存しますか？"),
     "script": MessageLookupByLibrary.simpleMessage("スクリプト"),
@@ -893,7 +917,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "scrollToSelected": MessageLookupByLibrary.simpleMessage("選択項目へスクロール"),
     "search": MessageLookupByLibrary.simpleMessage("検索"),
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
-    "secondsCount": m30,
+    "secondsCount": m31,
     "selectAll": MessageLookupByLibrary.simpleMessage("すべて選択"),
     "selectMatchTarget": MessageLookupByLibrary.simpleMessage(
       "MATCH-TARGET を選択",
@@ -908,7 +932,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "selectSubRule": MessageLookupByLibrary.simpleMessage("サブルールを選択してください"),
     "selected": MessageLookupByLibrary.simpleMessage("選択済み"),
-    "selectedCountTitle": m31,
+    "selectedCountTitle": m32,
     "settings": MessageLookupByLibrary.simpleMessage("設定"),
     "show": MessageLookupByLibrary.simpleMessage("表示"),
     "showLess": MessageLookupByLibrary.simpleMessage("折りたたむ"),
@@ -1005,7 +1029,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("アップロード"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("URLからプロファイルを取得します"),
-    "urlTip": m32,
+    "urlTip": m33,
     "useHosts": MessageLookupByLibrary.simpleMessage("Hostsを使用"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("システムのHostsを使用"),
     "usedTraffic": MessageLookupByLibrary.simpleMessage("使用済みトラフィック"),
@@ -1022,7 +1046,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "vpnTip": MessageLookupByLibrary.simpleMessage("変更はVPNの再起動後に有効になります"),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV設定"),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("ホワイトリストモード"),
-    "yearsAgo": m33,
+    "yearsAgo": m34,
     "zhCN": MessageLookupByLibrary.simpleMessage("簡体字中国語"),
   };
 }

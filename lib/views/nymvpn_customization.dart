@@ -20,12 +20,13 @@ class NymvpnCustomizationView extends ConsumerWidget {
     final android = isAndroid ?? system.isAndroid;
     final settings = ref.watch(appSettingProvider);
     void layout(List<DashboardWidget> widgets) {
-      ref.read(appSettingProvider.notifier).update(
-        (state) => state.copyWith(dashboardWidgets: widgets),
-      );
+      ref
+          .read(appSettingProvider.notifier)
+          .update((state) => state.copyWith(dashboardWidgets: widgets));
     }
 
-    String minutes(int value) => value == 0 ? strings.nymDisabled : strings.nymMinutes(value);
+    String minutes(int value) =>
+        value == 0 ? strings.nymDisabled : strings.nymMinutes(value);
     String battery(int value) => value == 0 ? strings.nymDisabled : '$value%';
 
     return BaseScaffold(
@@ -40,27 +41,48 @@ class NymvpnCustomizationView extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Wrap(spacing: 8, runSpacing: 8, children: [
-              OutlinedButton(
-                onPressed: () => layout(const [DashboardWidget.networkSpeed, DashboardWidget.outboundModeV2]),
-                child: Text(strings.nymMinimal),
-              ),
-              OutlinedButton(
-                onPressed: () => layout(defaultDashboardWidgets),
-                child: Text(strings.nymStandard),
-              ),
-              OutlinedButton(
-                onPressed: () => layout(const [DashboardWidget.networkSpeed, DashboardWidget.networkDetection, DashboardWidget.trafficUsage, DashboardWidget.memoryInfo]),
-                child: Text(strings.nymConnectionStats),
-              ),
-            ]),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: () => layout(const [
+                    DashboardWidget.networkSpeed,
+                    DashboardWidget.outboundModeV2,
+                  ]),
+                  child: Text(strings.nymMinimal),
+                ),
+                OutlinedButton(
+                  onPressed: () => layout(defaultDashboardWidgets),
+                  child: Text(strings.nymStandard),
+                ),
+                OutlinedButton(
+                  onPressed: () => layout(const [
+                    DashboardWidget.networkSpeed,
+                    DashboardWidget.networkDetection,
+                    DashboardWidget.trafficUsage,
+                    DashboardWidget.memoryInfo,
+                  ]),
+                  child: Text(strings.nymConnectionStats),
+                ),
+              ],
+            ),
           ),
           SwitchListTile(
             title: Text(strings.nymAccountTitle),
-            value: settings.dashboardWidgets.contains(DashboardWidget.nymvpnAccount),
-            onChanged: (value) => layout(value
-                ? [...settings.dashboardWidgets, DashboardWidget.nymvpnAccount]
-                : settings.dashboardWidgets.where((item) => item != DashboardWidget.nymvpnAccount).toList()),
+            value: settings.dashboardWidgets.contains(
+              DashboardWidget.nymvpnAccount,
+            ),
+            onChanged: (value) => layout(
+              value
+                  ? [
+                      ...settings.dashboardWidgets,
+                      DashboardWidget.nymvpnAccount,
+                    ]
+                  : settings.dashboardWidgets
+                        .where((item) => item != DashboardWidget.nymvpnAccount)
+                        .toList(),
+            ),
           ),
           if (android) ...[
             ListHeader(title: strings.nymPowerTitle),
@@ -80,7 +102,11 @@ class NymvpnCustomizationView extends ConsumerWidget {
                 if (value == null) {
                   return;
                 }
-                ref.read(appSettingProvider.notifier).update((state) => state.copyWith(nymAutoStopMinutes: value));
+                ref
+                    .read(appSettingProvider.notifier)
+                    .update(
+                      (state) => state.copyWith(nymAutoStopMinutes: value),
+                    );
               },
             ),
             ListItem<int>.options(
@@ -95,7 +121,11 @@ class NymvpnCustomizationView extends ConsumerWidget {
                 if (value == null) {
                   return;
                 }
-                ref.read(appSettingProvider.notifier).update((state) => state.copyWith(nymStopBatteryPercent: value));
+                ref
+                    .read(appSettingProvider.notifier)
+                    .update(
+                      (state) => state.copyWith(nymStopBatteryPercent: value),
+                    );
               },
             ),
           ],

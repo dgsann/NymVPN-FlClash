@@ -102,8 +102,10 @@ class SetupAction extends _$SetupAction {
     if (system.isAndroid) {
       await _updateStartTime();
     }
-    final powerStopped = system.isAndroid && (await service?.isPowerStopped() ?? false);
-    final shouldRun = _isRunning || (ref.read(appSettingProvider).autoRun && !powerStopped);
+    final powerStopped =
+        system.isAndroid && (await service?.isPowerStopped() ?? false);
+    final shouldRun =
+        _isRunning || (ref.read(appSettingProvider).autoRun && !powerStopped);
     if (shouldRun) {
       await setRunning(true, initialize: true);
     } else {
@@ -140,7 +142,10 @@ class SetupAction extends _$SetupAction {
     final request = _latestRunRequest;
     try {
       final stopped = await service?.isPowerStopped() ?? false;
-      if (!ref.mounted || !stopped || request != _latestRunRequest || _runningTransitions != 0) {
+      if (!ref.mounted ||
+          !stopped ||
+          request != _latestRunRequest ||
+          _runningTransitions != 0) {
         return;
       }
       _setLocalRunning(false);

@@ -6,44 +6,48 @@ part of '../config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_AppSettingProps _$AppSettingPropsFromJson(Map<String, dynamic> json) =>
-    _AppSettingProps(
-      locale: json['locale'] as String?,
-      dashboardWidgets: json['dashboardWidgets'] == null
-          ? defaultDashboardWidgets
-          : dashboardWidgetsSafeFormJson(json['dashboardWidgets'] as List?),
-      onlyStatisticsProxy: json['onlyStatisticsProxy'] as bool? ?? false,
-      showNotificationStopAction:
-          json['showNotificationStopAction'] as bool? ?? true,
-      autoLaunch: json['autoLaunch'] as bool? ?? false,
-      silentLaunch: json['silentLaunch'] as bool? ?? false,
-      autoRun: json['autoRun'] as bool? ?? false,
-      openLogs: json['openLogs'] as bool? ?? false,
-      closeConnections: json['closeConnections'] as bool? ?? true,
-      testUrl: json['testUrl'] as String? ?? defaultTestUrl,
-      isAnimateToPage: json['isAnimateToPage'] as bool? ?? true,
-      autoCheckUpdate: json['autoCheckUpdate'] as bool? ?? true,
-      showLabel: json['showLabel'] as bool? ?? false,
-      disclaimerAccepted: json['disclaimerAccepted'] as bool? ?? false,
-      crashlyticsTip: json['crashlyticsTip'] as bool? ?? false,
-      crashlytics: json['crashlytics'] as bool? ?? false,
-      minimizeOnExit: json['minimizeOnExit'] as bool? ?? true,
-      hidden: json['hidden'] as bool? ?? false,
-      developerMode: json['developerMode'] as bool? ?? false,
-      restoreStrategy:
-          $enumDecodeNullable(
-            _$RestoreStrategyEnumMap,
-            json['restoreStrategy'],
-          ) ??
-          RestoreStrategy.compatible,
-      showTrayTitle: json['showTrayTitle'] as bool? ?? true,
-      checkCertificate: json['checkCertificate'] as bool? ?? true,
-      customUserAgent: json['customUserAgent'] as String? ?? '',
-    );
+_AppSettingProps _$AppSettingPropsFromJson(
+  Map<String, dynamic> json,
+) => _AppSettingProps(
+  locale: json['locale'] as String?,
+  nymDashboardVersion: (json['nymDashboardVersion'] as num?)?.toInt() ?? 1,
+  nymAutoStopMinutes: (json['nymAutoStopMinutes'] as num?)?.toInt() ?? 0,
+  nymStopBatteryPercent: (json['nymStopBatteryPercent'] as num?)?.toInt() ?? 0,
+  dashboardWidgets: json['dashboardWidgets'] == null
+      ? defaultDashboardWidgets
+      : dashboardWidgetsSafeFormJson(json['dashboardWidgets'] as List?),
+  onlyStatisticsProxy: json['onlyStatisticsProxy'] as bool? ?? false,
+  showNotificationStopAction:
+      json['showNotificationStopAction'] as bool? ?? true,
+  autoLaunch: json['autoLaunch'] as bool? ?? false,
+  silentLaunch: json['silentLaunch'] as bool? ?? false,
+  autoRun: json['autoRun'] as bool? ?? false,
+  openLogs: json['openLogs'] as bool? ?? false,
+  closeConnections: json['closeConnections'] as bool? ?? true,
+  testUrl: json['testUrl'] as String? ?? defaultTestUrl,
+  isAnimateToPage: json['isAnimateToPage'] as bool? ?? true,
+  autoCheckUpdate: json['autoCheckUpdate'] as bool? ?? true,
+  showLabel: json['showLabel'] as bool? ?? false,
+  disclaimerAccepted: json['disclaimerAccepted'] as bool? ?? false,
+  crashlyticsTip: json['crashlyticsTip'] as bool? ?? false,
+  crashlytics: json['crashlytics'] as bool? ?? false,
+  minimizeOnExit: json['minimizeOnExit'] as bool? ?? true,
+  hidden: json['hidden'] as bool? ?? false,
+  developerMode: json['developerMode'] as bool? ?? false,
+  restoreStrategy:
+      $enumDecodeNullable(_$RestoreStrategyEnumMap, json['restoreStrategy']) ??
+      RestoreStrategy.compatible,
+  showTrayTitle: json['showTrayTitle'] as bool? ?? true,
+  checkCertificate: json['checkCertificate'] as bool? ?? true,
+  customUserAgent: json['customUserAgent'] as String? ?? '',
+);
 
 Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
     <String, dynamic>{
       'locale': instance.locale,
+      'nymDashboardVersion': instance.nymDashboardVersion,
+      'nymAutoStopMinutes': instance.nymAutoStopMinutes,
+      'nymStopBatteryPercent': instance.nymStopBatteryPercent,
       'dashboardWidgets': instance.dashboardWidgets
           .map((e) => _$DashboardWidgetEnumMap[e]!)
           .toList(),
@@ -76,6 +80,7 @@ const _$RestoreStrategyEnumMap = {
 };
 
 const _$DashboardWidgetEnumMap = {
+  DashboardWidget.nymvpnAccount: 'nymvpnAccount',
   DashboardWidget.networkSpeed: 'networkSpeed',
   DashboardWidget.outboundModeV2: 'outboundModeV2',
   DashboardWidget.outboundMode: 'outboundMode',
