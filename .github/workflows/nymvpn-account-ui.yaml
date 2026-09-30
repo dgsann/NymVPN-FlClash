@@ -25,9 +25,9 @@ jobs:
         run: |
           sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
           flutter pub get
-          dart format test/widgets/nymvpn_account_layout_test.dart
-          flutter test test/widgets/nymvpn_account_layout_test.dart
-          flutter analyze test/widgets/nymvpn_account_layout_test.dart
+          dart format test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
+          flutter test test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
+          flutter analyze test/widgets/nymvpn_account_layout_test.dart test/widgets/nymvpn_account_card_test.dart
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -35,3 +35,4 @@ jobs:
           path: |
             build/profile-preview/
             test/widgets/nymvpn_account_layout_test.dart
+            test/widgets/nymvpn_account_card_test.dart
