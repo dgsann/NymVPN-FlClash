@@ -21,10 +21,19 @@ void main() {
     );
   });
 
-  test('subscription failures show a safe message without the private URL', () async {
-    await expectLater(
-      request.getFileResponseForUrl('http://127.0.0.1/private-token'),
-      throwsA(isA<MessageException>().having((e) => e.message, 'message', isNot(contains('private-token')))),
-    );
-  });
+  test(
+    'subscription failures show a safe message without the private URL',
+    () async {
+      await expectLater(
+        request.getFileResponseForUrl('http://127.0.0.1/private-token'),
+        throwsA(
+          isA<MessageException>().having(
+            (e) => e.message,
+            'message',
+            isNot(contains('private-token')),
+          ),
+        ),
+      );
+    },
+  );
 }

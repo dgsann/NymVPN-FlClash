@@ -2,11 +2,15 @@ import 'package:yaml/yaml.dart';
 
 bool isNymvpnSubscription(String value) {
   final uri = Uri.tryParse(value);
-  if (uri == null || uri.scheme != 'https' ||
-      uri.host != 'sub.pixel-node.online' || uri.port != 443 ||
-      uri.userInfo.isNotEmpty) return false;
-  return RegExp(r'^/sub/[0-9]+/[a-zA-Z0-9_-]+(?:/p/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)?$')
-      .hasMatch(uri.path);
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      uri.host != 'sub.pixel-node.online' ||
+      uri.port != 443 ||
+      uri.userInfo.isNotEmpty)
+    return false;
+  return RegExp(
+    r'^/sub/[0-9]+/[a-zA-Z0-9_-]+(?:/p/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)?$',
+  ).hasMatch(uri.path);
 }
 
 Duration subscriptionUpdateInterval(String? header, Duration fallback) {
@@ -27,7 +31,12 @@ Map<String, String> nymvpnInitialSelections(String yaml) {
     final proxies = group['proxies'];
     if (name is! String || proxies is! List || proxies.isEmpty) continue;
     if (name == '🧠 NymVPN Adaptive') {
-      for (final candidate in ['NymVPN', 'NymVPN-AutoTCP', 'RU-AMS', 'RU-Finland']) {
+      for (final candidate in [
+        'NymVPN',
+        'NymVPN-AutoTCP',
+        'RU-AMS',
+        'RU-Finland',
+      ]) {
         if (proxies.contains(candidate)) {
           result[name] = candidate;
           break;

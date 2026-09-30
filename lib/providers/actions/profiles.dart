@@ -47,18 +47,21 @@ class ProfilesAction extends _$ProfilesAction {
       if (!profile.autoUpdate || !_refreshQueue.canRetry(profile.id)) continue;
       final managed = isNymvpnSubscription(profile.url);
       if (managed && !ref.read(isStartProvider)) continue;
-      final interval = managed && profile.autoUpdateDuration > const Duration(hours: 1)
-          ? const Duration(hours: 1) : profile.autoUpdateDuration;
-      final isNotNeedUpdate = profile.lastUpdateDate
-          ?.add(interval)
-          .isBeforeNow;
+      final interval =
+          managed && profile.autoUpdateDuration > const Duration(hours: 1)
+          ? const Duration(hours: 1)
+          : profile.autoUpdateDuration;
+      final isNotNeedUpdate = profile.lastUpdateDate?.add(interval).isBeforeNow;
       if (isNotNeedUpdate == false || profile.type == ProfileType.file) {
         continue;
       }
       try {
         await updateProfile(profile);
       } catch (e) {
-        commonPrint.log('Subscription refresh failed (${e.runtimeType}); keeping saved profile', logLevel: LogLevel.warning);
+        commonPrint.log(
+          'Subscription refresh failed (${e.runtimeType}); keeping saved profile',
+          logLevel: LogLevel.warning,
+        );
       }
     }
   }
@@ -76,49 +79,54 @@ class ProfilesAction extends _$ProfilesAction {
     }
   }
 
-  Future<void> updateProfile(
-    Profile profile, {
-    bool showLoading = false,
-  }) => _refreshQueue.run(profile.id, () async {
-    final operation = showLoading
-        ? ref.read(updatingKeysProvider.notifier).start(profile.updatingKey)
-        : null;
-    try {
-      ref.read(profilesProvider.notifier).put(profile);
-      List<int>? oldBytes;
-      final newProfile = await profile.update(
-        validate: (path) async {
+  Future<void> updateProfile(Profile profile, {bool showLoading = false}) =>
+      _refreshQueue.run(profile.id, () async {
+        final operation = showLoading
+            ? ref.read(updatingKeysProvider.notifier).start(profile.updatingKey)
+            : null;
+        try {
+          ref.read(profilesProvider.notifier).put(profile);
+          List<int>? oldBytes;
+          final newProfile = await profile.update(
+            validate: (path) async {
+              final latest = ref.read(profilesProvider).getProfile(profile.id);
+              if (latest == null || latest.url != profile.url) {
+                throw MessageException('Profile changed during refresh');
+              }
+              final savedFile = File(
+                await appPath.getProfilePath(profile.id.toString()),
+              );
+              if (await savedFile.exists())
+                oldBytes = await savedFile.readAsBytes();
+              return _core.validateConfig(path);
+            },
+          );
+          final savedFile = await profile.file;
           final latest = ref.read(profilesProvider).getProfile(profile.id);
-          if (latest == null || latest.url != profile.url) {
-            throw MessageException('Profile changed during refresh');
+          if (latest == null || latest.url != profile.url) return;
+          ref
+              .read(profilesProvider.notifier)
+              .put(
+                latest.copyWith(
+                  lastUpdateDate: newProfile.lastUpdateDate,
+                  subscriptionInfo: newProfile.subscriptionInfo,
+                  autoUpdateDuration: newProfile.autoUpdateDuration,
+                ),
+              );
+          final changed = !listEquals(oldBytes, await savedFile.readAsBytes());
+          if (changed && profile.id == ref.read(currentProfileIdProvider)) {
+            ref
+                .read(setupActionProvider.notifier)
+                .applyProfileDebounce(silence: true);
           }
-          final savedFile = File(await appPath.getProfilePath(profile.id.toString()));
-          if (await savedFile.exists()) oldBytes = await savedFile.readAsBytes();
-          return _core.validateConfig(path);
-        },
-      );
-      final savedFile = await profile.file;
-      final latest = ref.read(profilesProvider).getProfile(profile.id);
-      if (latest == null || latest.url != profile.url) return;
-      ref.read(profilesProvider.notifier).put(latest.copyWith(
-        lastUpdateDate: newProfile.lastUpdateDate,
-        subscriptionInfo: newProfile.subscriptionInfo,
-        autoUpdateDuration: newProfile.autoUpdateDuration,
-      ));
-      final changed = !listEquals(oldBytes, await savedFile.readAsBytes());
-      if (changed && profile.id == ref.read(currentProfileIdProvider)) {
-        ref
-            .read(setupActionProvider.notifier)
-            .applyProfileDebounce(silence: true);
-      }
-    } finally {
-      if (operation != null) {
-        ref
-            .read(updatingKeysProvider.notifier)
-            .stop(profile.updatingKey, operation);
-      }
-    }
-  });
+        } finally {
+          if (operation != null) {
+            ref
+                .read(updatingKeysProvider.notifier)
+                .stop(profile.updatingKey, operation);
+          }
+        }
+      });
 
   Future<void> addProfileFormFile() async {
     final platformFile = await globalState.safeRun(picker.pickerFile);
@@ -160,9 +168,9 @@ class ProfilesAction extends _$ProfilesAction {
             if (latest == null) return null;
             updated = latest;
           } else {
-            updated = await Profile.normal(url: url).update(
-              validate: (path) => _core.validateConfig(path),
-            );
+            updated = await Profile.normal(
+              url: url,
+            ).update(validate: (path) => _core.validateConfig(path));
           }
           if (!managed) return updated;
           final yaml = await (await updated.file).readAsString();
@@ -179,18 +187,28 @@ class ProfilesAction extends _$ProfilesAction {
       if (profile == null) return;
       final sameProfile = ref.read(currentProfileIdProvider) == profile.id;
       if (managed) {
-        ref.read(patchClashConfigProvider.notifier).update(
-          (state) => state.copyWith(mode: Mode.rule, tun: state.tun.copyWith(enable: true)),
-        );
-        ref.read(vpnSettingProvider.notifier).update((state) => state.copyWith(enable: true));
+        ref
+            .read(patchClashConfigProvider.notifier)
+            .update(
+              (state) => state.copyWith(
+                mode: Mode.rule,
+                tun: state.tun.copyWith(enable: true),
+              ),
+            );
+        ref
+            .read(vpnSettingProvider.notifier)
+            .update((state) => state.copyWith(enable: true));
         ref.read(overrideDnsProvider.notifier).value = false;
       }
       putProfile(profile);
       ref.read(currentProfileIdProvider.notifier).value = profile.id;
       if (sameProfile) {
-        ref.read(setupActionProvider.notifier).applyProfileDebounce(silence: true);
+        ref
+            .read(setupActionProvider.notifier)
+            .applyProfileDebounce(silence: true);
       }
-      if (managed) ref.read(currentPageLabelProvider.notifier).value = PageLabel.dashboard;
+      if (managed)
+        ref.read(currentPageLabelProvider.notifier).value = PageLabel.dashboard;
     } finally {
       _importing = false;
     }

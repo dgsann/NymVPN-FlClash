@@ -41,19 +41,27 @@ class Request {
 
   Future<Response<Uint8List>> getFileResponseForUrl(String url) async {
     final token = CancelToken();
-    final timer = Timer(const Duration(seconds: 45), () => token.cancel('Subscription download timed out'));
+    final timer = Timer(
+      const Duration(seconds: 45),
+      () => token.cancel('Subscription download timed out'),
+    );
     try {
       return await _clashDio.get<Uint8List>(
         url,
         cancelToken: token,
-        options: Options(responseType: ResponseType.bytes, receiveTimeout: const Duration(seconds: 20)),
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 20),
+        ),
       );
     } catch (e) {
       commonPrint.log(
         'Subscription download failed (${e.runtimeType})',
         logLevel: LogLevel.warning,
       );
-      throw MessageException('Не удалось обновить подписку. Проверьте подключение и повторите попытку. Сохранённый профиль не изменён.');
+      throw MessageException(
+        'Не удалось обновить подписку. Проверьте подключение и повторите попытку. Сохранённый профиль не изменён.',
+      );
     } finally {
       timer.cancel();
     }

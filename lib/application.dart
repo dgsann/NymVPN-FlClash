@@ -58,7 +58,8 @@ class Application extends ConsumerStatefulWidget {
   ConsumerState<Application> createState() => ApplicationState();
 }
 
-class ApplicationState extends ConsumerState<Application> with WidgetsBindingObserver {
+class ApplicationState extends ConsumerState<Application>
+    with WidgetsBindingObserver {
   Timer? _autoUpdateProfilesTaskTimer;
   bool _preHasVpn = false;
   Timer? _connectionRefreshTimer;
@@ -150,7 +151,10 @@ class ApplicationState extends ConsumerState<Application> with WidgetsBindingObs
 
   void _scheduleConnectionRefresh() {
     _connectionRefreshTimer?.cancel();
-    _connectionRefreshTimer = Timer(const Duration(seconds: 5), _refreshDueProfiles);
+    _connectionRefreshTimer = Timer(
+      const Duration(seconds: 5),
+      _refreshDueProfiles,
+    );
   }
 
   @override

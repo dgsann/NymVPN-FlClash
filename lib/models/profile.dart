@@ -189,7 +189,8 @@ extension ProfileExtension on Profile {
       ]),
       subscriptionInfo: SubscriptionInfo.formHString(userinfo),
       autoUpdateDuration: subscriptionUpdateInterval(
-        response.headers.value('profile-update-interval'), autoUpdateDuration,
+        response.headers.value('profile-update-interval'),
+        autoUpdateDuration,
       ),
     ).saveFile(response.data ?? Uint8List.fromList([]), validate: validate);
   }
