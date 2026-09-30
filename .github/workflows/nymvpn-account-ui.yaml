@@ -1,0 +1,32 @@
+name: NymVPN account layout
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.1'
+          cache: true
+      - name: Check compact layout and enlarged text
+        env:
+          NYMVPN_UI_CAPTURE: '1'
+        run: |
+          sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
+          flutter pub get
+          dart format test/widgets/nymvpn_account_layout_test.dart
+          flutter test test/widgets/nymvpn_account_layout_test.dart
+          flutter analyze test/widgets/nymvpn_account_layout_test.dart
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NymVPN-account-layout
+          path: |
+            build/profile-preview/
+            test/widgets/nymvpn_account_layout_test.dart
