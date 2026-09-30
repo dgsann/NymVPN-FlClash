@@ -18,6 +18,7 @@ import 'package:path/path.dart' show dirname, join;
 import 'config/advanced.dart';
 import 'developer.dart';
 import 'theme.dart';
+import 'nymvpn_customization.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
   const ToolsView({super.key});
@@ -67,6 +68,11 @@ class _ToolViewState extends ConsumerState<ToolsView> {
     return generateSection(
       title: context.appLocalizations.settings,
       items: [
+        ListItem.open(
+          leading: const Icon(Icons.tune),
+          title: Text(context.appLocalizations.nymCustomize),
+          widget: const NymvpnCustomizationView(),
+        ),
         const _LocaleItem(),
         const _ThemeItem(),
         const _BackupItem(),

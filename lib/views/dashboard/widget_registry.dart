@@ -1,9 +1,14 @@
 import 'package:fl_clash/enum/enum.dart';
+import 'widgets/nymvpn_account_card.dart';
 import 'package:fl_clash/views/dashboard/widgets/widgets.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 
 extension DashboardWidgetView on DashboardWidget {
   GridItem get widget => switch (this) {
+    DashboardWidget.nymvpnAccount => const GridItem(
+      crossAxisCellCount: 8,
+      child: NymvpnAccountPanel(),
+    ),
     DashboardWidget.networkSpeed => const GridItem(
       crossAxisCellCount: 8,
       child: NetworkSpeed(),

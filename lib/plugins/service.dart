@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 
 abstract mixin class ServiceListener {
   void onServiceEvent(CoreEvent event) {}
+  void onPowerStopped() {}
 }
 
 class Service {
@@ -29,6 +30,11 @@ class Service {
     methodChannel = const MethodChannel('$packageName/service');
     methodChannel.setMethodCallHandler((call) async {
       switch (call.method) {
+        case 'powerStopped':
+          for (final listener in List.of(_listeners)) {
+            listener.onPowerStopped();
+          }
+          break;
         case 'event':
           final data = call.arguments as String? ?? '';
           final methodCall = CoreMethodCall.fromJson(
@@ -65,6 +71,9 @@ class Service {
     final dataJson = await data.decodeJson<dynamic>();
     return CoreMethodResponse.fromJson(dataJson);
   }
+
+  Future<bool> isPowerStopped() async =>
+      await methodChannel.invokeMethod<bool>('getPowerStopped') ?? false;
 
   Future<bool> start() async {
     return await methodChannel.invokeMethod<bool>('start') ?? false;

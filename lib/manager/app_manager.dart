@@ -76,6 +76,7 @@ class _AppStateManagerState extends ConsumerState<AppStateManager>
     commonPrint.log('$state');
     if (state == AppLifecycleState.resumed) {
       permissions.check(ref.read);
+      unawaited(ref.read(setupActionProvider.notifier).reconcilePowerStop());
       render?.resume();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) {

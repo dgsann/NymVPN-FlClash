@@ -18,15 +18,21 @@ class NymvpnAccountPanel extends ConsumerWidget {
     final profile = ref.watch(currentProfileProvider);
     if (profile == null ||
         NymvpnAccountAccess.fromSubscription(profile.url) == null) {
-      return const SizedBox.shrink();
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(context.appLocalizations.nymAccountTitle),
+            const SizedBox(height: 8),
+            Text(context.appLocalizations.nymAccountMissing),
+          ]),
+        ),
+      );
     }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: NymvpnAccountCard(
-        subscription: profile.url,
-        connected: ref.watch(isStartProvider),
-        load: request.getNymvpnAccount,
-      ),
+    return NymvpnAccountCard(
+      subscription: profile.url,
+      connected: ref.watch(isStartProvider),
+      load: request.getNymvpnAccount,
     );
   }
 }

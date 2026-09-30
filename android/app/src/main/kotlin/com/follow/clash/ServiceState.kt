@@ -8,6 +8,7 @@ object ServiceState {
     private val machine = ServiceStateMachine(AndroidServiceStateHost)
 
     val runState = machine.runState
+    val isPowerStopped: Boolean get() = machine.isPowerStopped
 
     fun attachFlutterEngine(engine: FlutterEngine) =
         AndroidServiceStateHost.attachFlutterEngine(engine)

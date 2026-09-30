@@ -319,6 +319,8 @@ abstract class SharedState with _$SharedState {
     required String stopText,
     required bool onlyStatisticsProxy,
     @Default(true) bool showStopAction,
+    @Default(0) int nymAutoStopMinutes,
+    @Default(0) int nymStopBatteryPercent,
     required bool crashlytics,
   }) = _SharedState;
 

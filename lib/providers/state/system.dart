@@ -159,6 +159,8 @@ SharedState sharedState(Ref ref) {
       (state) => (
         onlyStatisticsProxy: state.onlyStatisticsProxy,
         showStopAction: state.showNotificationStopAction,
+        nymAutoStopMinutes: state.nymAutoStopMinutes,
+        nymStopBatteryPercent: state.nymStopBatteryPercent,
         crashlytics: state.crashlytics,
         testUrl: state.testUrl,
       ),
@@ -194,6 +196,8 @@ SharedState sharedState(Ref ref) {
     currentProfileName: currentProfileName,
     onlyStatisticsProxy: onlyStatisticsProxy,
     showStopAction: appSetting.showStopAction,
+    nymAutoStopMinutes: appSetting.nymAutoStopMinutes,
+    nymStopBatteryPercent: appSetting.nymStopBatteryPercent,
     stopText: currentAppLocalizations.stop,
     crashlytics: crashlytics,
     stopTip: currentAppLocalizations.stopVpn,

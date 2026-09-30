@@ -653,5 +653,28 @@
         "type": "int"
       }
     }
+  },
+  "nymCustomize": "自定义 NymVPN",
+  "nymHomeLayout": "主屏幕",
+  "nymLayoutHint": "点击主屏幕的铅笔：拖动卡片，用 − 隐藏，用 + 恢复。预设只替换布局，不改变 VPN 设置。",
+  "nymMinimal": "精简",
+  "nymStandard": "标准",
+  "nymConnectionStats": "统计",
+  "nymPowerTitle": "电池与自动断开",
+  "nymPowerHint": "默认关闭。连接或条件变更时开始计时。低电量条件仅在未充电时生效。断开后应用直接联网；若系统禁止 VPN 外连接，将无法上网。深度休眠可能延迟计时器。",
+  "nymStopTimer": "定时断开",
+  "nymLowBattery": "电量不高于此值时断开",
+  "nymDisabled": "关闭",
+  "nymMinutes": "{value} 分钟",
+  "nymMoreCustomization": "更多设置",
+  "nymApps": "使用 VPN 的应用",
+  "nymAppsHint": "选择哪些应用使用 VPN。",
+  "nymAccountMissing": "添加并选择 NymVPN 订阅链接以查看游戏进度。",
+  "@nymMinutes": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
   }
 }

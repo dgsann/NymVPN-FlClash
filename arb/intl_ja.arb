@@ -653,5 +653,28 @@
         "type": "int"
       }
     }
+  },
+  "nymCustomize": "NymVPN をカスタマイズ",
+  "nymHomeLayout": "ホーム画面",
+  "nymLayoutHint": "ホームの鉛筆でカードを移動し、− で非表示、+ で復元できます。プリセットは配置のみを変更します。",
+  "nymMinimal": "最小",
+  "nymStandard": "標準",
+  "nymConnectionStats": "統計",
+  "nymPowerTitle": "バッテリーと自動切断",
+  "nymPowerHint": "初期状態は無効です。タイマーは接続時または条件変更時に開始します。低残量は充電中には適用しません。停止後は VPN 外で通信します。VPN 外の通信を禁止している場合は通信できません。スリープ中はタイマーが遅れる場合があります。",
+  "nymStopTimer": "タイマーで切断",
+  "nymLowBattery": "このバッテリー残量以下で切断",
+  "nymDisabled": "無効",
+  "nymMinutes": "{value} 分",
+  "nymMoreCustomization": "その他の設定",
+  "nymApps": "VPN を使うアプリ",
+  "nymAppsHint": "VPN を使用するアプリを選択します。",
+  "nymAccountMissing": "NymVPN の購読リンクを追加して選択するとゲームの進捗が表示されます。",
+  "@nymMinutes": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
   }
 }

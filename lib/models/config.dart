@@ -38,6 +38,7 @@ const defaultAccessControlProps = AccessControlProps();
 const defaultThemeProps = ThemeProps(primaryColor: defaultPrimaryColor);
 
 const List<DashboardWidget> defaultDashboardWidgets = [
+  DashboardWidget.nymvpnAccount,
   DashboardWidget.networkSpeed,
   DashboardWidget.systemProxyButton,
   DashboardWidget.tunButton,
@@ -61,10 +62,24 @@ List<DashboardWidget> dashboardWidgetsSafeFormJson(
   );
 }
 
+Map<String, Object?> migrateNymDashboard(Map<String, Object?> json) {
+  if (json['nymDashboardVersion'] == 1) return json;
+  final old = json['dashboardWidgets'];
+  return {
+    ...json,
+    'nymDashboardVersion': 1,
+    if (old is List && !old.contains('nymvpnAccount'))
+      'dashboardWidgets': ['nymvpnAccount', ...old],
+  };
+}
+
 @freezed
 abstract class AppSettingProps with _$AppSettingProps {
   const factory AppSettingProps({
     String? locale,
+    @Default(1) int nymDashboardVersion,
+    @Default(0) int nymAutoStopMinutes,
+    @Default(0) int nymStopBatteryPercent,
     @Default(defaultDashboardWidgets)
     @JsonKey(fromJson: dashboardWidgetsSafeFormJson)
     List<DashboardWidget> dashboardWidgets,
@@ -92,7 +107,7 @@ abstract class AppSettingProps with _$AppSettingProps {
   }) = _AppSettingProps;
 
   factory AppSettingProps.fromJson(Map<String, Object?> json) =>
-      _$AppSettingPropsFromJson(json);
+      _$AppSettingPropsFromJson(migrateNymDashboard(json));
 
   factory AppSettingProps.safeFromJson(Map<String, Object?>? json) {
     if (json == null) {

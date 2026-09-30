@@ -41,6 +41,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "shutdown" -> shutdown(result)
             "invokeMethod" -> invokeMethod(call, result)
             "getRunTime" -> getRunTime(result)
+            "getPowerStopped" -> result.success(ServiceState.isPowerStopped)
             "syncState" -> syncState(call, result)
             "start" -> start(result)
             "stop" -> stop(result)
@@ -105,6 +106,10 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private fun stop(result: MethodChannel.Result) {
         ServiceState.requestStop()
         result.success(true)
+    }
+
+    fun sendPowerStopped() {
+        scope.launch(Dispatchers.Main) { channel.invokeMethod("powerStopped", null) }
     }
 
     private fun sendEvent(value: String?) {

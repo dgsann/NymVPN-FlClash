@@ -7,6 +7,8 @@ import com.follow.clash.service.models.VpnOptions
 import com.google.gson.Gson
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -39,6 +41,47 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
     private val startPreparationLock = Mutex()
     private val mutableRunState = MutableStateFlow(RunState.STOPPED)
     private val arbiter = RunIntentArbiter()
+    private var powerJob: Job? = null
+    private var watchedPowerPolicy = PowerPolicy()
+    private var watchedPowerToken: RunRequest? = null
+    @Volatile private var powerStopRequest: RunRequest? = null
+
+    val isPowerStopped: Boolean
+        get() = powerStopRequest?.let { isCurrent(it) && runTimeMillis == 0L } == true
+
+    @Synchronized
+    private fun watchPower(request: RunRequest = arbiter.current()) {
+        val policy = PowerPolicy(sharedState.nymAutoStopMinutes, sharedState.nymStopBatteryPercent)
+        if (request === watchedPowerToken && policy == watchedPowerPolicy && powerJob?.isActive == true) return
+        powerJob?.cancel()
+        watchedPowerToken = request
+        watchedPowerPolicy = policy
+        if (!policy.enabled || !request.running || runState.value != RunState.STARTED) return
+        val started = host.powerNowMillis
+        powerJob = host.scope.launch {
+            while (isCurrent(request) && runState.value == RunState.STARTED) {
+                if (policy.shouldStop(host.powerNowMillis - started, host.batteryReading())) {
+                    requestPowerStop(request)
+                    return@launch
+                }
+                delay(30_000)
+            }
+        }
+    }
+
+    internal fun requestPowerStop(token: RunRequest): Deferred<Boolean> {
+        if (!token.running) return CompletableDeferred(false)
+        val request = arbiter.requestIfCurrent(token, running = false)
+            ?: return CompletableDeferred(false)
+        powerStopRequest = request
+        val result = CompletableDeferred<Boolean>()
+        host.scope.launch {
+            val stopped = runCatching { stop(request) }.getOrDefault(false)
+            if (stopped && isPowerStopped) host.notifyPowerStopped()
+            result.complete(stopped)
+        }
+        return result
+    }
 
     @Volatile
     private var sharedState = SharedState()
@@ -179,6 +222,7 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
     private fun applySharedState() {
         host.setCrashlytics(sharedState.crashlytics)
         host.updateNotificationParams(notificationParams(sharedState))
+        watchPower()
     }
 
     private suspend fun setupCore(): Boolean {
@@ -243,6 +287,7 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
             }
             if (runTimeMillis != 0L && host.isVpnServiceActive() == options.enable) {
                 mutableRunState.value = RunState.STARTED
+                watchPower(request)
                 return@transition true
             }
             mutableRunState.value = RunState.STARTING
@@ -256,6 +301,7 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
                 return@transition false
             }
             mutableRunState.value = RunState.STARTED
+            watchPower(request)
             true
         }
     }
@@ -273,6 +319,7 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
         if (!isCurrent(request)) {
             return@withLock false
         }
+        powerJob?.cancel()
         abandonVpnPreparation()
         if (runState.value == RunState.STOPPED && runTimeMillis == 0L) {
             return@withLock true

@@ -55,12 +55,15 @@ jobs:
         run: |
           flutter pub get
           dart run intl_utils:generate
+          dart run build_runner build --delete-conflicting-outputs --build-filter='lib/models/generated/config.*.dart' --build-filter='lib/models/generated/state.*.dart' --build-filter='lib/providers/generated/*.g.dart'
       - name: Verify app import and subscription refresh
         run: |
+          dart format lib/views/nymvpn_customization.dart lib/enum/enum.dart lib/models/config.dart lib/views/dashboard/widget_registry.dart lib/views/dashboard/dashboard.dart lib/views/dashboard/widgets/nymvpn_account_card.dart lib/views/tools.dart lib/models/state.dart lib/providers/state/system.dart lib/plugins/service.dart lib/manager/android_manager.dart lib/manager/app_manager.dart lib/providers/actions/setup.dart test/models/nymvpn_customization_test.dart test/widgets/nymvpn_customization_test.dart
           dart format lib/common/nymvpn_account.dart lib/views/dashboard/widgets/nymvpn_account_card.dart lib/views/dashboard/dashboard.dart lib/manager/app_manager.dart test/common/nymvpn_account_test.dart test/widgets/nymvpn_account_card_test.dart lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/common/http.dart lib/common/link.dart lib/common/constant.dart lib/models/profile.dart lib/providers/action.dart lib/providers/actions/profiles.dart test/common/nymvpn_profile_test.dart test/common/request_test.dart test/models/profile_save_test.dart
           cp pubspec.yaml "$RUNNER_TEMP/pubspec-build.yaml"
           sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
-          flutter test test/common/nymvpn_account_test.dart test/widgets/nymvpn_account_card_test.dart test/common/nymvpn_profile_test.dart test/common/request_test.dart test/common/link_test.dart test/models/profile_save_test.dart test/models/profile_test.dart test/providers/action_test.dart test/application_test.dart
+          flutter test test/models/nymvpn_customization_test.dart test/widgets/nymvpn_customization_test.dart test/providers/setup_action_test.dart test/widgets/dashboard_layout_test.dart test/common/nymvpn_account_test.dart test/widgets/nymvpn_account_card_test.dart test/common/nymvpn_profile_test.dart test/common/request_test.dart test/common/link_test.dart test/models/profile_save_test.dart test/models/profile_test.dart test/providers/action_test.dart test/application_test.dart
+          flutter analyze lib/views/nymvpn_customization.dart lib/enum/enum.dart lib/models/config.dart lib/views/dashboard/widget_registry.dart lib/views/dashboard/dashboard.dart lib/views/dashboard/widgets/nymvpn_account_card.dart lib/views/tools.dart lib/models/state.dart lib/providers/state/system.dart lib/plugins/service.dart lib/manager/android_manager.dart lib/manager/app_manager.dart test/models/nymvpn_customization_test.dart test/widgets/nymvpn_customization_test.dart
           flutter analyze lib/common/nymvpn_account.dart lib/views/dashboard/widgets/nymvpn_account_card.dart lib/views/dashboard/dashboard.dart lib/manager/app_manager.dart test/common/nymvpn_account_test.dart test/widgets/nymvpn_account_card_test.dart lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/models/profile.dart lib/providers/action.dart
           cp "$RUNNER_TEMP/pubspec-build.yaml" pubspec.yaml
       - name: Upload formatted app sources
@@ -90,6 +93,38 @@ jobs:
             test/widgets/nymvpn_account_card_test.dart
             lib/l10n/
             pubspec.lock
+            lib/views/nymvpn_customization.dart
+            lib/enum/enum.dart
+            lib/models/config.dart
+            lib/views/dashboard/widget_registry.dart
+            lib/views/dashboard/dashboard.dart
+            lib/views/dashboard/widgets/nymvpn_account_card.dart
+            lib/views/tools.dart
+            lib/models/state.dart
+            lib/providers/state/system.dart
+            lib/plugins/service.dart
+            lib/manager/android_manager.dart
+            lib/manager/app_manager.dart
+            lib/providers/actions/setup.dart
+            test/models/nymvpn_customization_test.dart
+            test/widgets/nymvpn_customization_test.dart
+            lib/models/generated/
+            lib/providers/generated/
+      - name: Verify Android service lifecycle and power policy
+        working-directory: android
+        run: |
+          { echo "flutter.sdk=$FLUTTER_ROOT"; echo "sdk.dir=$ANDROID_HOME"; } > local.properties
+          wrapper="$FLUTTER_ROOT/bin/cache/artifacts/gradle_wrapper"
+          test -d "$wrapper" || flutter precache
+          cp -R "$wrapper/." .
+          chmod +x gradlew
+          ./gradlew :common:testDebugUnitTest :service:testDebugUnitTest :app:testDebugUnitTest -x :app:compileFlutterBuildDebug -x :app:copyFlutterAssetsDebug
+      - name: Upload native test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NymVPN-native-tests
+          path: build/**/test-results/
       - name: Install bindgen host library
         run: |
           sudo apt-get update -qq
@@ -106,7 +141,7 @@ jobs:
           printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
           printf '\nstorePassword=%s\nkeyAlias=nymvpn\nkeyPassword=%s\n' "$STORE_PASSWORD" "$STORE_PASSWORD" >> android/local.properties
       - name: Build ARM64 canary
-        run: flutter build apk --release --target-platform android-arm64 --build-number=2026093006 --build-name=0.8.98-nymvpn.6
+        run: flutter build apk --release --target-platform android-arm64 --build-number=2026093007 --build-name=0.8.98-nymvpn.7
       - name: Remove signing material
         if: always()
         run: rm -f android/app/keystore.jks android/local.properties

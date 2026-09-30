@@ -276,6 +276,7 @@ enum FunctionTag {
 }
 
 enum DashboardWidget {
+  nymvpnAccount,
   networkSpeed,
   outboundModeV2,
   outboundMode,

@@ -94,6 +94,12 @@ private class FakeHost(override val scope: CoroutineScope) : ServiceStateHost {
     var app: AppGateway? = null
     var beforeStartService: (() -> Unit)? = null
 
+    var powerClock: () -> Long = { 0L }
+    var battery = BatteryReading()
+    var powerNotifications = 0
+    override val powerNowMillis: Long get() = powerClock()
+    override fun batteryReading() = battery
+    override fun notifyPowerStopped() { powerNotifications++ }
     override var runTimeMillis = 0L
     override val homeDirPath = "/data/user/0/com.follow.clash/files"
     override val sdkInt = 34
@@ -654,5 +660,78 @@ class ServiceStateMachineTest {
         assertFalse(machine.requestStart().await())
         assertTrue(host.logs.any { it.contains("binder died") })
         assertFalse(machine.captureRequestToken().running)
+    }
+
+    @Test
+    fun `timer stops service without a Flutter owner and only notifies once`() = runTest {
+        val host = FakeHost(backgroundScope)
+        host.powerClock = { testScheduler.currentTime }
+        val machine = ServiceStateMachine(host)
+        machine.syncSharedState(configuredState().copy(nymAutoStopMinutes = 1))
+        assertTrue(machine.requestStart().await())
+        testScheduler.advanceTimeBy(59_999)
+        testScheduler.runCurrent()
+        assertEquals(0, host.stopCalls)
+        testScheduler.advanceTimeBy(1)
+        testScheduler.runCurrent()
+        assertTrue(machine.isPowerStopped)
+        assertEquals(0L, host.runTimeMillis)
+        assertEquals(1, host.powerNotifications)
+        testScheduler.advanceTimeBy(60_000)
+        testScheduler.runCurrent()
+        assertEquals(1, host.stopCalls)
+    }
+
+    @Test
+    fun `disabling timer cancels pending deadline and unrelated settings do not reset it`() = runTest {
+        val host = FakeHost(backgroundScope)
+        host.powerClock = { testScheduler.currentTime }
+        val machine = ServiceStateMachine(host)
+        val settings = configuredState().copy(nymAutoStopMinutes = 1)
+        machine.syncSharedState(settings)
+        machine.requestStart().await()
+        testScheduler.advanceTimeBy(30_000)
+        machine.syncSharedState(settings.copy(currentProfileName = "Renamed"))
+        testScheduler.advanceTimeBy(30_000)
+        testScheduler.runCurrent()
+        assertTrue(machine.isPowerStopped)
+        machine.requestStart().await()
+        assertFalse(machine.isPowerStopped)
+        machine.syncSharedState(settings.copy(nymAutoStopMinutes = 0))
+        testScheduler.advanceTimeBy(120_000)
+        testScheduler.runCurrent()
+        assertEquals(1, host.stopCalls)
+        assertEquals(RunState.STARTED, machine.runState.value)
+    }
+
+    @Test
+    fun `stale power stop cannot override a new connection`() = runTest {
+        val host = FakeHost(backgroundScope)
+        val machine = ServiceStateMachine(host)
+        machine.syncSharedState(configuredState())
+        machine.requestStart().await()
+        val old = machine.captureRequestToken()
+        machine.requestStart().await()
+        assertFalse(machine.requestPowerStop(old).await())
+        assertEquals(0, host.stopCalls)
+        assertFalse(machine.isPowerStopped)
+        assertTrue(machine.requestPowerStop(machine.captureRequestToken()).await())
+        assertEquals(1, host.stopCalls)
+    }
+
+    @Test
+    fun `battery monitoring waits for charger removal`() = runTest {
+        val host = FakeHost(backgroundScope)
+        host.battery = BatteryReading(10, true)
+        val machine = ServiceStateMachine(host)
+        machine.syncSharedState(configuredState().copy(nymStopBatteryPercent = 15))
+        machine.requestStart().await()
+        testScheduler.runCurrent()
+        assertEquals(0, host.stopCalls)
+        host.battery = BatteryReading(10, false)
+        testScheduler.advanceTimeBy(30_000)
+        testScheduler.runCurrent()
+        assertTrue(machine.isPowerStopped)
+        assertEquals(1, host.powerNotifications)
     }
 }

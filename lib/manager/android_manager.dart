@@ -49,6 +49,11 @@ class _AndroidContainerState extends ConsumerState<AndroidManager>
     app?.onPackagesChanged = _reloadPackages;
   }
 
+  @override
+  void onPowerStopped() {
+    unawaited(ref.read(setupActionProvider.notifier).reconcilePowerStop());
+  }
+
   void _reloadPackages() {
     if (ref.read(packagesProvider).isEmpty) {
       return;

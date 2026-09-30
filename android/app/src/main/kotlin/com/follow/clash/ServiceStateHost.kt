@@ -1,6 +1,11 @@
 package com.follow.clash
 
 import android.net.VpnService
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import android.os.SystemClock
+import com.follow.clash.plugins.ServicePlugin
 import com.follow.clash.common.GlobalState
 import com.follow.clash.models.SharedState
 import com.follow.clash.plugins.AppPlugin
@@ -20,6 +25,9 @@ internal interface ServiceStateHost {
     val runTimeMillis: Long
     val homeDirPath: String
     val sdkInt: Int
+    val powerNowMillis: Long get() = System.nanoTime() / 1_000_000
+    fun batteryReading(): BatteryReading = BatteryReading()
+    fun notifyPowerStopped() {}
 
     fun log(message: String)
 
@@ -75,6 +83,21 @@ internal object AndroidServiceStateHost : ServiceStateHost {
 
     override val sdkInt: Int
         get() = android.os.Build.VERSION.SDK_INT
+
+    override val powerNowMillis: Long get() = SystemClock.elapsedRealtime()
+
+    override fun batteryReading(): BatteryReading {
+        val intent = GlobalState.application.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            ?: return BatteryReading()
+        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+        val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+        return BatteryReading(if (level >= 0 && scale > 0) level * 100 / scale else null, plugged)
+    }
+
+    override fun notifyPowerStopped() {
+        flutterEngine?.plugin<ServicePlugin>()?.sendPowerStopped()
+    }
 
     fun attachFlutterEngine(engine: FlutterEngine) {
         flutterEngine = engine

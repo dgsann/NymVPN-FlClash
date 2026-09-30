@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widget_registry.dart';
 import 'widgets/core_status_button.dart';
 import 'widgets/start_button.dart';
-import 'widgets/nymvpn_account_card.dart';
+import '../nymvpn_customization.dart';
 
 typedef _IsEditWidgetBuilder = Widget Function(bool isEdit);
 
@@ -75,6 +75,14 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   List<Widget> _buildActions(bool isEdit) {
     return [
       if (!isEdit && coreLib == null) const CoreStatusButton(),
+      if (!isEdit)
+        IconButton(
+          tooltip: context.appLocalizations.nymCustomize,
+          icon: const Icon(Icons.tune),
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => const NymvpnCustomizationView(),
+          )),
+        ),
       if (isEdit)
         ValueListenableBuilder(
           valueListenable: _addedWidgetsNotifier,
@@ -165,7 +173,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     if (currentState == null) {
       return;
     }
-    if (!mounted || currentState.snapshotChildren.isEmpty) {
+    if (!mounted) {
       return;
     }
     final transformCompleted = await currentState.isTransformCompleter;
@@ -187,9 +195,6 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       return null;
     }
     final children = currentState.snapshotChildren;
-    if (children.isEmpty) {
-      return null;
-    }
     return children.map(dashboardWidgetOf).toList();
   }
 
@@ -247,17 +252,11 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                                 },
                               ),
                             )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                const NymvpnAccountPanel(),
-                                Grid(
-                                  crossAxisCount: columns,
-                                  crossAxisSpacing: spacing,
-                                  mainAxisSpacing: spacing,
-                                  children: children,
-                                ),
-                              ],
+                          : Grid(
+                              crossAxisCount: columns,
+                              crossAxisSpacing: spacing,
+                              mainAxisSpacing: spacing,
+                              children: children,
                             );
                     },
                   ),

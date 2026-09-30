@@ -22,6 +22,7 @@ class SetupAction extends _$SetupAction {
   final _setupScheduler = SerialTaskScheduler();
   final _listenerScheduler = SerialTaskScheduler();
   _RunRequest? _latestRunRequest;
+  int _runningTransitions = 0;
   DateTime? _startTime;
 
   bool get _isRunning => _startTime != null && _startTime!.isBeforeNow;
@@ -101,7 +102,8 @@ class SetupAction extends _$SetupAction {
     if (system.isAndroid) {
       await _updateStartTime();
     }
-    final shouldRun = _isRunning || ref.read(appSettingProvider).autoRun;
+    final powerStopped = system.isAndroid && (await service?.isPowerStopped() ?? false);
+    final shouldRun = _isRunning || (ref.read(appSettingProvider).autoRun && !powerStopped);
     if (shouldRun) {
       await setRunning(true, initialize: true);
     } else {
@@ -124,7 +126,24 @@ class SetupAction extends _$SetupAction {
     if (request.initialize) {
       globalState.needInitStatus = false;
     }
-    return running ? _start(request) : _stop(request);
+    _runningTransitions++;
+    return (running ? _start(request) : _stop(request)).whenComplete(() {
+      _runningTransitions--;
+      unawaited(reconcilePowerStop());
+    });
+  }
+
+  Future<void> reconcilePowerStop() async {
+    if (!system.isAndroid || !_isRunning || _runningTransitions != 0) return;
+    final request = _latestRunRequest;
+    try {
+      final stopped = await service?.isPowerStopped() ?? false;
+      if (!ref.mounted || !stopped || request != _latestRunRequest || _runningTransitions != 0) return;
+      _setLocalRunning(false);
+      ref.read(trafficsProvider.notifier).clear();
+    } catch (_) {
+      // Resume can precede the Android channel attaching; the next event retries.
+    }
   }
 
   Future<bool> _start(_RunRequest request) async {

@@ -653,5 +653,28 @@
         "type": "int"
       }
     }
+  },
+  "nymCustomize": "Customize NymVPN",
+  "nymHomeLayout": "Home screen",
+  "nymLayoutHint": "Tap the pencil on the home screen: drag cards, remove them with − and restore them with +. Presets replace the layout, not your VPN settings.",
+  "nymMinimal": "Minimal",
+  "nymStandard": "Standard",
+  "nymConnectionStats": "Statistics",
+  "nymPowerTitle": "Battery and auto disconnect",
+  "nymPowerHint": "Off by default. The timer starts on connection or when conditions change. Low battery applies only while unplugged. Apps use the direct connection after stopping; Android blocking connections without VPN will block internet. Deep sleep may delay the timer.",
+  "nymStopTimer": "Disconnect after",
+  "nymLowBattery": "Disconnect at battery level",
+  "nymDisabled": "Off",
+  "nymMinutes": "{value} min",
+  "nymMoreCustomization": "More customization",
+  "nymApps": "Apps using VPN",
+  "nymAppsHint": "Choose which apps should use the VPN.",
+  "nymAccountMissing": "Add and select your NymVPN subscription link to see your game progress.",
+  "@nymMinutes": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
   }
 }
