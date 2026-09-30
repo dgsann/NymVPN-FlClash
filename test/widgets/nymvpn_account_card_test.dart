@@ -102,20 +102,35 @@ void main() {
     expect(calls, 2);
   });
 
-  testWidgets('failed refresh keeps the last account with a stale notice', (tester) async {
+  testWidgets('failed refresh keeps the last account with a stale notice', (
+    tester,
+  ) async {
     var calls = 0;
-    await tester.pumpWidget(app(id: 7, load: (_) async {
-      if (++calls > 1) throw StateError('offline');
-      return account(7);
-    }));
+    await tester.pumpWidget(
+      app(
+        id: 7,
+        load: (_) async {
+          if (++calls > 1) throw StateError('offline');
+          return account(7);
+        },
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Refresh profile'));
     await tester.pumpAndSettle();
     expect(find.text('Player 7'), findsOneWidget);
-    expect(find.text('Could not refresh. Showing your last loaded progress.'), findsOneWidget);
-    expect(tester.widget<IconButton>(find.byType(IconButton)).onPressed, isNotNull);
+    expect(
+      find.text('Could not refresh. Showing your last loaded progress.'),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<IconButton>(find.byType(IconButton)).onPressed,
+      isNotNull,
+    );
   });
-  testWidgets('closing the card safely ignores a pending response', (tester) async {
+  testWidgets('closing the card safely ignores a pending response', (
+    tester,
+  ) async {
     final pending = Completer<NymvpnAccount>();
     await tester.pumpWidget(app(id: 7, load: (_) => pending.future));
     await tester.pumpWidget(const SizedBox.shrink());

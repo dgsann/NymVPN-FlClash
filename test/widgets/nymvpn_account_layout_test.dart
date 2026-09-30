@@ -26,10 +26,14 @@ void main() {
       Future.value(ByteData.sublistView(await font.readAsBytes())),
     );
     await loader.load();
-    final icons = File('$root/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf');
+    final icons = File(
+      '$root/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+    );
     if (icons.existsSync()) {
       final iconLoader = FontLoader('MaterialIcons');
-      iconLoader.addFont(Future.value(ByteData.sublistView(await icons.readAsBytes())));
+      iconLoader.addFont(
+        Future.value(ByteData.sublistView(await icons.readAsBytes())),
+      );
       await iconLoader.load();
     }
   });
