@@ -91,14 +91,19 @@ class ProfilesAction extends _$ProfilesAction {
             validate: (path) async {
               final latest = ref.read(profilesProvider).getProfile(profile.id);
               if (latest == null || latest.url != profile.url) {
-                throw MessageException('Profile changed during refresh');
+                throw const MessageException('Profile changed during refresh');
               }
               final savedFile = File(
                 await appPath.getProfilePath(profile.id.toString()),
               );
               if (await savedFile.exists())
                 oldBytes = await savedFile.readAsBytes();
-              return _core.validateConfig(path);
+              final result = await _core.validateConfig(path);
+          final current = ref.read(profilesProvider).getProfile(profile.id);
+          if (current == null || current.url != profile.url) {
+            throw const MessageException('Profile changed during refresh');
+          }
+          return result;
             },
           );
           final savedFile = await profile.file;
@@ -207,8 +212,9 @@ class ProfilesAction extends _$ProfilesAction {
             .read(setupActionProvider.notifier)
             .applyProfileDebounce(silence: true);
       }
-      if (managed)
+      if (managed) {
         ref.read(currentPageLabelProvider.notifier).value = PageLabel.dashboard;
+      }
     } finally {
       _importing = false;
     }

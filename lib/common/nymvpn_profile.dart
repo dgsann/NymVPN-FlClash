@@ -6,8 +6,9 @@ bool isNymvpnSubscription(String value) {
       uri.scheme != 'https' ||
       uri.host != 'sub.pixel-node.online' ||
       uri.port != 443 ||
-      uri.userInfo.isNotEmpty)
+      uri.userInfo.isNotEmpty) {
     return false;
+  }
   return RegExp(
     r'^/sub/[0-9]+/[a-zA-Z0-9_-]+(?:/p/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)?$',
   ).hasMatch(uri.path);

@@ -23,7 +23,7 @@ class ProfileRefreshQueue {
         _retryAfter[id] = now().add(const Duration(minutes: 2));
         completer.completeError(error, stack);
       } finally {
-        _pending.remove(id);
+        _pending.remove(id)?.ignore();
       }
     }());
     return completer.future;

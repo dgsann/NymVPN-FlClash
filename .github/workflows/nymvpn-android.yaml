@@ -59,7 +59,7 @@ jobs:
           cp pubspec.yaml "$RUNNER_TEMP/pubspec-build.yaml"
           sed -i 's/build_assets: true/build_assets: false/g' pubspec.yaml
           flutter test test/common/nymvpn_profile_test.dart test/common/request_test.dart test/common/link_test.dart test/models/profile_save_test.dart test/models/profile_test.dart test/providers/action_test.dart test/application_test.dart
-          flutter analyze --no-fatal-infos --no-fatal-warnings lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/models/profile.dart lib/providers/action.dart
+          flutter analyze lib/application.dart lib/common/nymvpn_profile.dart lib/common/profile_refresh.dart lib/common/request.dart lib/models/profile.dart lib/providers/action.dart
           cp "$RUNNER_TEMP/pubspec-build.yaml" pubspec.yaml
       - name: Upload formatted app sources
         if: always()
@@ -80,6 +80,7 @@ jobs:
             test/common/nymvpn_profile_test.dart
             test/common/request_test.dart
             test/models/profile_save_test.dart
+            pubspec.lock
       - name: Install bindgen host library
         run: |
           sudo apt-get update -qq
@@ -96,7 +97,7 @@ jobs:
           printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
           printf '\nstorePassword=%s\nkeyAlias=nymvpn\nkeyPassword=%s\n' "$STORE_PASSWORD" "$STORE_PASSWORD" >> android/local.properties
       - name: Build ARM64 canary
-        run: flutter build apk --release --target-platform android-arm64 --build-number=2026093004 --build-name=0.8.98-nymvpn.4
+        run: flutter build apk --release --target-platform android-arm64 --build-number=2026093005 --build-name=0.8.98-nymvpn.5
       - name: Remove signing material
         if: always()
         run: rm -f android/app/keystore.jks android/local.properties

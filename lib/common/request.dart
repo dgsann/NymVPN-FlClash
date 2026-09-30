@@ -59,7 +59,7 @@ class Request {
         'Subscription download failed (${e.runtimeType})',
         logLevel: LogLevel.warning,
       );
-      throw MessageException(
+      throw const MessageException(
         'Не удалось обновить подписку. Проверьте подключение и повторите попытку. Сохранённый профиль не изменён.',
       );
     } finally {
