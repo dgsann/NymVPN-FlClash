@@ -71,7 +71,7 @@ internal class ServiceStateMachine(private val host: ServiceStateHost) {
 
     @Synchronized
     internal fun requestPowerStop(token: RunRequest, expectedPolicy: PowerPolicy? = null): Deferred<Boolean> {
-        if (expectedPolicy != null && expectedPolicy != watchedPowerPolicy) return CompletableDeferred(false)
+        if (expectedPolicy != null && expectedPolicy !== watchedPowerPolicy) return CompletableDeferred(false)
         if (!token.running) return CompletableDeferred(false)
         val request = arbiter.requestIfCurrent(token, running = false)
             ?: return CompletableDeferred(false)
