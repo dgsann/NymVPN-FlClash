@@ -22,7 +22,7 @@ class Request {
 
   Request() {
     dio = Dio(BaseOptions(headers: {'User-Agent': browserUa}));
-    _clashDio = Dio();
+    _clashDio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 12)));
     _clashDio.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {
         final client = HttpClient();
@@ -40,17 +40,22 @@ class Request {
   }
 
   Future<Response<Uint8List>> getFileResponseForUrl(String url) async {
+    final token = CancelToken();
+    final timer = Timer(const Duration(seconds: 45), () => token.cancel('Subscription download timed out'));
     try {
       return await _clashDio.get<Uint8List>(
         url,
-        options: Options(responseType: ResponseType.bytes),
+        cancelToken: token,
+        options: Options(responseType: ResponseType.bytes, receiveTimeout: const Duration(seconds: 20)),
       );
     } catch (e) {
       commonPrint.log(
-        'getFileResponseForUrl error ${compactError(e)}',
+        'Subscription download failed (${e.runtimeType})',
         logLevel: LogLevel.warning,
       );
-      rethrow;
+      throw MessageException('Не удалось обновить подписку. Проверьте подключение и повторите попытку. Сохранённый профиль не изменён.');
+    } finally {
+      timer.cancel();
     }
   }
 

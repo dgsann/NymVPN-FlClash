@@ -45,8 +45,8 @@ class LinkManager {
   }
 
   void _handle(Uri uri, Function(String url) installConfigCallBack) {
-    commonPrint.log('onAppLink: $uri');
-    if (uri.host == 'install-config') {
+    commonPrint.log('Subscription link received');
+    if (protocolSchemes.contains(uri.scheme) && uri.host == 'install-config') {
       final parameters = uri.queryParameters;
       final url = parameters['url'];
       if (url != null) {

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:fl_clash/common/exception.dart';
 import 'package:fl_clash/common/request.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,16 +21,10 @@ void main() {
     );
   });
 
-  test('getFileResponseForUrl propagates the typed DioException', () async {
+  test('subscription failures show a safe message without the private URL', () async {
     await expectLater(
-      request.getFileResponseForUrl('http://127.0.0.1/anything'),
-      throwsA(
-        isA<DioException>().having(
-          (e) => e.type,
-          'type',
-          DioExceptionType.badResponse,
-        ),
-      ),
+      request.getFileResponseForUrl('http://127.0.0.1/private-token'),
+      throwsA(isA<MessageException>().having((e) => e.message, 'message', isNot(contains('private-token')))),
     );
   });
 }

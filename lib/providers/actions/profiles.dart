@@ -7,6 +7,9 @@ class ProfilesAction extends _$ProfilesAction {
   @override
   void build() {}
 
+  final _refreshQueue = ProfileRefreshQueue();
+  bool _importing = false;
+
   void updateCurrentSelectedMap(String groupName, String proxyName) {
     final currentProfile = ref.read(currentProfileProvider);
     if (currentProfile != null &&
@@ -41,9 +44,13 @@ class ProfilesAction extends _$ProfilesAction {
 
   Future<void> autoUpdateProfiles() async {
     for (final profile in ref.read(profilesProvider)) {
-      if (!profile.autoUpdate) continue;
+      if (!profile.autoUpdate || !_refreshQueue.canRetry(profile.id)) continue;
+      final managed = isNymvpnSubscription(profile.url);
+      if (managed && !ref.read(isStartProvider)) continue;
+      final interval = managed && profile.autoUpdateDuration > const Duration(hours: 1)
+          ? const Duration(hours: 1) : profile.autoUpdateDuration;
       final isNotNeedUpdate = profile.lastUpdateDate
-          ?.add(profile.autoUpdateDuration)
+          ?.add(interval)
           .isBeforeNow;
       if (isNotNeedUpdate == false || profile.type == ProfileType.file) {
         continue;
@@ -51,7 +58,7 @@ class ProfilesAction extends _$ProfilesAction {
       try {
         await updateProfile(profile);
       } catch (e) {
-        commonPrint.log(compactError(e), logLevel: LogLevel.warning);
+        commonPrint.log('Subscription refresh failed (${e.runtimeType}); keeping saved profile', logLevel: LogLevel.warning);
       }
     }
   }
@@ -72,17 +79,34 @@ class ProfilesAction extends _$ProfilesAction {
   Future<void> updateProfile(
     Profile profile, {
     bool showLoading = false,
-  }) async {
+  }) => _refreshQueue.run(profile.id, () async {
     final operation = showLoading
         ? ref.read(updatingKeysProvider.notifier).start(profile.updatingKey)
         : null;
     try {
       ref.read(profilesProvider.notifier).put(profile);
+      List<int>? oldBytes;
       final newProfile = await profile.update(
-        validate: (path) => _core.validateConfig(path),
+        validate: (path) async {
+          final latest = ref.read(profilesProvider).getProfile(profile.id);
+          if (latest == null || latest.url != profile.url) {
+            throw MessageException('Profile changed during refresh');
+          }
+          final savedFile = File(await appPath.getProfilePath(profile.id.toString()));
+          if (await savedFile.exists()) oldBytes = await savedFile.readAsBytes();
+          return _core.validateConfig(path);
+        },
       );
-      ref.read(profilesProvider.notifier).put(newProfile);
-      if (profile.id == ref.read(currentProfileIdProvider)) {
+      final savedFile = await profile.file;
+      final latest = ref.read(profilesProvider).getProfile(profile.id);
+      if (latest == null || latest.url != profile.url) return;
+      ref.read(profilesProvider.notifier).put(latest.copyWith(
+        lastUpdateDate: newProfile.lastUpdateDate,
+        subscriptionInfo: newProfile.subscriptionInfo,
+        autoUpdateDuration: newProfile.autoUpdateDuration,
+      ));
+      final changed = !listEquals(oldBytes, await savedFile.readAsBytes());
+      if (changed && profile.id == ref.read(currentProfileIdProvider)) {
         ref
             .read(setupActionProvider.notifier)
             .applyProfileDebounce(silence: true);
@@ -94,7 +118,7 @@ class ProfilesAction extends _$ProfilesAction {
             .stop(profile.updatingKey, operation);
       }
     }
-  }
+  });
 
   Future<void> addProfileFormFile() async {
     final platformFile = await globalState.safeRun(picker.pickerFile);
@@ -117,21 +141,58 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<void> addProfileFormURL(String url) async {
-    if (globalState.navigatorKey.currentState?.canPop() ?? false) {
+    if (_importing) return;
+    _importing = true;
+    try {
+      url = url.trim();
+      final managed = isNymvpnSubscription(url);
       globalState.navigatorKey.currentState?.popUntil((route) => route.isFirst);
-    }
-    ref.read(currentPageLabelProvider.notifier).value = PageLabel.profiles;
-    final profile = await globalState.loadingRun(
-      tag: LoadingTag.profiles,
-      () async {
-        return Profile.normal(
-          url: url,
-        ).update(validate: (path) => _core.validateConfig(path));
-      },
-      title: currentAppLocalizations.addProfile,
-    );
-    if (profile != null) {
+      ref.read(currentPageLabelProvider.notifier).value = PageLabel.profiles;
+      final profile = await globalState.loadingRun(
+        tag: LoadingTag.profiles,
+        () async {
+          final matches = ref.read(profilesProvider).where((p) => p.url == url);
+          Profile updated;
+          if (matches.isNotEmpty) {
+            final existing = matches.first;
+            await updateProfile(existing);
+            final latest = ref.read(profilesProvider).getProfile(existing.id);
+            if (latest == null) return null;
+            updated = latest;
+          } else {
+            updated = await Profile.normal(url: url).update(
+              validate: (path) => _core.validateConfig(path),
+            );
+          }
+          if (!managed) return updated;
+          final yaml = await (await updated.file).readAsString();
+          return updated.copyWith(
+            label: 'NymVPN',
+            autoUpdate: true,
+            autoUpdateDuration: const Duration(hours: 1),
+            currentGroupName: null,
+            selectedMap: nymvpnInitialSelections(yaml),
+          );
+        },
+        title: currentAppLocalizations.addProfile,
+      );
+      if (profile == null) return;
+      final sameProfile = ref.read(currentProfileIdProvider) == profile.id;
+      if (managed) {
+        ref.read(patchClashConfigProvider.notifier).update(
+          (state) => state.copyWith(mode: Mode.rule, tun: state.tun.copyWith(enable: true)),
+        );
+        ref.read(vpnSettingProvider.notifier).update((state) => state.copyWith(enable: true));
+        ref.read(overrideDnsProvider.notifier).value = false;
+      }
       putProfile(profile);
+      ref.read(currentProfileIdProvider.notifier).value = profile.id;
+      if (sameProfile) {
+        ref.read(setupActionProvider.notifier).applyProfileDebounce(silence: true);
+      }
+      if (managed) ref.read(currentPageLabelProvider.notifier).value = PageLabel.dashboard;
+    } finally {
+      _importing = false;
     }
   }
 

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<title>NymVPN :3</title>
+<rect x="0" y="0" width="512" height="512" fill="#171021"/>
+<rect x="144" y="192" width="32" height="32" fill="#BA91FF"/>
+<rect x="144" y="288" width="32" height="32" fill="#BA91FF"/>
+<rect x="224" y="160" width="96" height="32" fill="#BA91FF"/>
+<rect x="320" y="192" width="32" height="48" fill="#BA91FF"/>
+<rect x="256" y="240" width="64" height="32" fill="#BA91FF"/>
+<rect x="320" y="272" width="32" height="48" fill="#BA91FF"/>
+<rect x="224" y="320" width="96" height="32" fill="#BA91FF"/>
+</svg>

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fl_clash/common/nymvpn_profile.dart';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/window.dart';
@@ -56,9 +58,10 @@ class Application extends ConsumerStatefulWidget {
   ConsumerState<Application> createState() => ApplicationState();
 }
 
-class ApplicationState extends ConsumerState<Application> {
+class ApplicationState extends ConsumerState<Application> with WidgetsBindingObserver {
   Timer? _autoUpdateProfilesTaskTimer;
   bool _preHasVpn = false;
+  Timer? _connectionRefreshTimer;
 
   final _pageTransitionsTheme = const PageTransitionsTheme(
     builders: <TargetPlatform, PageTransitionsBuilder>{
@@ -76,6 +79,10 @@ class ApplicationState extends ConsumerState<Application> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    ref.listenManual(isStartProvider, (previous, next) {
+      if (next && previous != next) _scheduleConnectionRefresh();
+    });
     SystemNavigator.setFrameworkHandlesBack(true);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       if (globalState.navigatorKey.currentContext != null) {
@@ -83,7 +90,9 @@ class ApplicationState extends ConsumerState<Application> {
       } else {
         exit(0);
       }
+      if (!mounted) return;
       _autoUpdateProfilesTask();
+      _scheduleConnectionRefresh();
       _initLink();
       unawaited(app?.initShortcuts());
     });
@@ -92,6 +101,10 @@ class ApplicationState extends ConsumerState<Application> {
   void _initLink() {
     linkManager.initAppLinksListen((url) async {
       unawaited(window?.show());
+      if (isNymvpnSubscription(url)) {
+        await ref.read(profilesActionProvider.notifier).addProfileFormURL(url);
+        return;
+      }
       final message = currentAppLocalizations.createProfileFromUrlTip(url);
       final parts = message.split(url);
       final res = await dialogs.showMessage(
@@ -118,14 +131,31 @@ class ApplicationState extends ConsumerState<Application> {
     });
   }
 
-  void _autoUpdateProfilesTask() {
-    _autoUpdateProfilesTaskTimer = Timer(const Duration(minutes: 20), () async {
+  Future<void> _refreshDueProfiles() async {
+    if (!mounted) return;
+    try {
       await ref.read(profilesActionProvider.notifier).autoUpdateProfiles();
-      if (!mounted) {
-        return;
-      }
-      _autoUpdateProfilesTask();
+    } catch (error) {
+      commonPrint.log('Subscription check failed (${error.runtimeType})');
+    }
+  }
+
+  void _autoUpdateProfilesTask() {
+    _autoUpdateProfilesTaskTimer?.cancel();
+    _autoUpdateProfilesTaskTimer = Timer(const Duration(minutes: 1), () async {
+      await _refreshDueProfiles();
+      if (mounted) _autoUpdateProfilesTask();
     });
+  }
+
+  void _scheduleConnectionRefresh() {
+    _connectionRefreshTimer?.cancel();
+    _connectionRefreshTimer = Timer(const Duration(seconds: 5), _refreshDueProfiles);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _scheduleConnectionRefresh();
   }
 
   Future<void> _handleConnectivityChanged(
@@ -139,6 +169,9 @@ class ApplicationState extends ConsumerState<Application> {
       ref.read(checkIpNumProvider.notifier).add();
     }
     _preHasVpn = hasVpn;
+    if (results.any((result) => result != ConnectivityResult.none)) {
+      _scheduleConnectionRefresh();
+    }
   }
 
   @override
@@ -198,6 +231,8 @@ class ApplicationState extends ConsumerState<Application> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _connectionRefreshTimer?.cancel();
     linkManager.destroy();
     _autoUpdateProfilesTaskTimer?.cancel();
     super.dispose();

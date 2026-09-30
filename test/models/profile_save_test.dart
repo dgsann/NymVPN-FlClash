@@ -39,6 +39,16 @@ void main() {
   });
 
   group('Profile.saveFile', () {
+    test('failed refresh retains the working profile and cleans staging files', () async {
+      final profile = Profile.normal(label: 'Working');
+      await profile.saveFile(Uint8List.fromList(utf8.encode('proxies: []')), validate: (_) async => '');
+      final file = await profile.file;
+      await expectLater(profile.saveFile(Uint8List.fromList(utf8.encode('bad: [')), validate: (_) async => 'invalid'), throwsA(isA<MessageException>()));
+      expect(await file.readAsString(), 'proxies: []');
+      expect(file.parent.listSync().where((entry) => entry.path.endsWith('.tmp')), isEmpty);
+      await profile.saveFile(Uint8List.fromList(utf8.encode('proxies: []\nrules: []')), validate: (_) async => '');
+      expect(await file.readAsString(), 'proxies: []\nrules: []');
+    });
     // EditProfileView relies on this throwing rather than silently
     // succeeding, so a caller-level try/catch can surface the failure.
     test('rejects an invalid config without touching the saved file', () async {

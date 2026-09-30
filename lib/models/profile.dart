@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:fl_clash/common/nymvpn_profile.dart';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -186,6 +188,9 @@ extension ProfileExtension on Profile {
         id.toString(),
       ]),
       subscriptionInfo: SubscriptionInfo.formHString(userinfo),
+      autoUpdateDuration: subscriptionUpdateInterval(
+        response.headers.value('profile-update-interval'), autoUpdateDuration,
+      ),
     ).saveFile(response.data ?? Uint8List.fromList([]), validate: validate);
   }
 
@@ -193,16 +198,17 @@ extension ProfileExtension on Profile {
     Uint8List bytes, {
     required ValidateConfig validate,
   }) async {
-    final path = await appPath.tempFilePath;
-    final tempFile = File(path);
-    await tempFile.safeWriteAsBytes(bytes);
-    final message = await validate(path);
-    if (message.isNotEmpty) {
-      throw MessageException(message);
+    final target = await _getFile(false);
+    await target.parent.create(recursive: true);
+    final tempFile = File('${target.path}.$uniqueId.tmp');
+    try {
+      await tempFile.writeAsBytes(bytes, flush: true);
+      final message = await validate(tempFile.path);
+      if (message.isNotEmpty) throw MessageException(message);
+      await tempFile.rename(target.path);
+    } finally {
+      if (await tempFile.exists()) await tempFile.delete();
     }
-    final mFile = await file;
-    await tempFile.copy(mFile.path);
-    await tempFile.safeDelete();
     return copyWith(lastUpdateDate: DateTime.now());
   }
 }
