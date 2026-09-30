@@ -99,11 +99,11 @@ class ProfilesAction extends _$ProfilesAction {
               if (await savedFile.exists())
                 oldBytes = await savedFile.readAsBytes();
               final result = await _core.validateConfig(path);
-          final current = ref.read(profilesProvider).getProfile(profile.id);
-          if (current == null || current.url != profile.url) {
-            throw const MessageException('Profile changed during refresh');
-          }
-          return result;
+              final current = ref.read(profilesProvider).getProfile(profile.id);
+              if (current == null || current.url != profile.url) {
+                throw const MessageException('Profile changed during refresh');
+              }
+              return result;
             },
           );
           final savedFile = await profile.file;
