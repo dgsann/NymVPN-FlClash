@@ -1,6 +1,11 @@
 name: NymVPN account layout
 on:
   workflow_dispatch:
+  push:
+    branches: [codex/nymvpn-app-refresh]
+    paths:
+      - .github/workflows/nymvpn-account-ui.yaml
+      - test/widgets/nymvpn_account_layout_test.dart
 permissions:
   contents: read
 jobs:
