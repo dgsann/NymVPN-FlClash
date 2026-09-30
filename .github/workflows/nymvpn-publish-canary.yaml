@@ -22,7 +22,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       SOURCE_RUN: ${{ inputs.source_run }}
-      SOURCE_SHA: de904b5bab71fd2092e6994995e6ed08a70d4545
+      SOURCE_SHA: 9e2f202a920a020faff21894eabe57387a7f4ddd
       EXPECTED_SIGNER: 3cd6e45336c130007d449327ee003275ae7e474ad23692cb41b22d54ce5a789b
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
           grep -F "certificate SHA-256 digest: $EXPECTED_SIGNER" apk-signature.txt
           aapt=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -n 1)
           "$aapt" dump badging artifact/app-release.apk > apk-package.txt
-          grep -F "package: name='com.follow.clash.nymvpn' versionCode='2026093005' versionName='0.8.98-nymvpn.5'" apk-package.txt
+          grep -F "package: name='com.follow.clash.nymvpn' versionCode='2026093006' versionName='0.8.98-nymvpn.6'" apk-package.txt
           grep -F "application-label:'NymVPN'" apk-package.txt
           unzip -p artifact/app-release.apk lib/arm64-v8a/libclash.so > "$RUNNER_TEMP/libclash.so"
           grep -aFq 'x-nymvpn-telemost' "$RUNNER_TEMP/libclash.so"
@@ -55,12 +55,12 @@ jobs:
           grep -aFq 'AutoTCP probe payload incomplete or invalid' "$RUNNER_TEMP/libclash.so"
       - name: Publish prerelease
         run: |
-          mv artifact/app-release.apk artifact/NymVPN-FlClash-0.8.98-nymvpn.5-arm64.apk
-          (cd artifact && sha256sum NymVPN-FlClash-0.8.98-nymvpn.5-arm64.apk > SHA256SUMS)
-          tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v0.8.98-nymvpn.5" --jq '.object.sha')
+          mv artifact/app-release.apk artifact/NymVPN-FlClash-0.8.98-nymvpn.6-arm64.apk
+          (cd artifact && sha256sum NymVPN-FlClash-0.8.98-nymvpn.6-arm64.apk > SHA256SUMS)
+          tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v0.8.98-nymvpn.6" --jq '.object.sha')
           test "$tag_sha" = "$SOURCE_SHA"
-          gh release create v0.8.98-nymvpn.5 \
+          gh release create v0.8.98-nymvpn.6 \
             --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease \
-            --title 'NymVPN :3 — настройка по ссылке и автообновление' \
-            --notes-file release-notes/nymvpn-5.md \
-            artifact/NymVPN-FlClash-0.8.98-nymvpn.5-arm64.apk artifact/SHA256SUMS
+            --title 'NymVPN :3 — профиль и игровой прогресс' \
+            --notes-file release-notes/nymvpn-6.md \
+            artifact/NymVPN-FlClash-0.8.98-nymvpn.6-arm64.apk artifact/SHA256SUMS
