@@ -18,6 +18,15 @@ jobs:
         with:
           go-version: '1.26.4'
           cache-dependency-path: core/go.sum
+      - name: Apply bounded CDN packet pipeline
+        run: |
+          git -C core/Clash.Meta apply --check ../patches/cdn-packet-pipeline.patch
+          git -C core/Clash.Meta apply ../patches/cdn-packet-pipeline.patch
+      - name: Verify CDN packet integrity and concurrency
+        working-directory: core/Clash.Meta
+        run: |
+          go test -race -count=1 ./transport/xhttp
+          go vet ./transport/xhttp
       - name: Test core, transports, and port candidates
         working-directory: core
         env:
@@ -142,7 +151,7 @@ jobs:
           printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
           printf '\nstorePassword=%s\nkeyAlias=nymvpn\nkeyPassword=%s\n' "$STORE_PASSWORD" "$STORE_PASSWORD" >> android/local.properties
       - name: Build ARM64 canary
-        run: flutter build apk --release --target-platform android-arm64 --build-number=2026093007 --build-name=0.8.98-nymvpn.7
+        run: flutter build apk --release --target-platform android-arm64 --build-number=2026100709 --build-name=0.8.98-nymvpn.9
       - name: Remove signing material
         if: always()
         run: rm -f android/app/keystore.jks android/local.properties

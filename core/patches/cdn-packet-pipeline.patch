@@ -1,0 +1,348 @@
+--- a/transport/xhttp/client.go
++++ b/transport/xhttp/client.go
+@@ -52,12 +52,23 @@
+ 	buf                  []byte
+ 	timer                *time.Timer
+ 	flushErr             error
++	inFlight             int
++	ackedSeq             uint64
++	acked                map[uint64]bool
++	closed               bool
++	closeOnce            sync.Once
+ }
+ 
+ func (c *PacketUpWriter) Write(b []byte) (int, error) {
+ 	c.writeMu.Lock()
+ 	defer c.writeMu.Unlock()
+ 
++	if c.closed {
++		return 0, net.ErrClosed
++	}
++	if err := c.ctx.Err(); err != nil {
++		return 0, err
++	}
+ 	if err := c.flushErr; err != nil {
+ 		return 0, err
+ 	}
+@@ -72,6 +83,12 @@
+ 
+ 		if len(c.buf) >= c.scMaxEachPostBytes { // too much data in buffer, wait the flush complete
+ 			c.writeCond.Wait()
++			if c.closed {
++				return len(b) - data.Len(), net.ErrClosed
++			}
++			if err := c.ctx.Err(); err != nil {
++				return len(b) - data.Len(), err
++			}
+ 			if err := c.flushErr; err != nil {
+ 				return 0, err
+ 			}
+@@ -98,15 +115,45 @@
+ 	if len(c.buf) == 0 {
+ 		return
+ 	}
+-	_, err := c.write(c.buf)
+-	c.buf = c.buf[:0] // reset buffer
+-	if err != nil {
+-		c.flushErr = err
++	limit := 1
++	if c.cfg.UplinkDataPlacement == PlacementHeader && c.scMaxEachPostBytes <= 8192 {
++		limit = 16
++	}
++	for c.seq-c.ackedSeq >= uint64(limit) && c.flushErr == nil && c.ctx.Err() == nil {
++		c.writeCond.Wait()
++	}
++	if c.flushErr != nil || c.ctx.Err() != nil || len(c.buf) == 0 {
+ 		return
+ 	}
+-}
+-
+-func (c *PacketUpWriter) write(b []byte) (int, error) {
++	payload := append([]byte(nil), c.buf...)
++	c.buf = c.buf[:0]
++	seq := c.seq
++	c.seq++
++	c.inFlight++
++	go func() {
++		_, err := c.write(payload, seq)
++		c.writeMu.Lock()
++		defer c.writeMu.Unlock()
++		c.inFlight--
++		if err != nil && c.flushErr == nil {
++			c.flushErr = err
++			c.cancel()
++		}
++		if err == nil {
++			if c.acked == nil {
++				c.acked = make(map[uint64]bool)
++			}
++			c.acked[seq] = true
++			for c.acked[c.ackedSeq] {
++				delete(c.acked, c.ackedSeq)
++				c.ackedSeq++
++			}
++		}
++		c.writeCond.Broadcast()
++	}()
++}
++
++func (c *PacketUpWriter) write(b []byte, seq uint64) (int, error) {
+ 	u := url.URL{
+ 		Scheme: "https",
+ 		Host:   c.cfg.Host,
+@@ -118,8 +165,7 @@
+ 		return 0, err
+ 	}
+ 
+-	seqStr := strconv.FormatUint(c.seq, 10)
+-	c.seq++
++	seqStr := strconv.FormatUint(seq, 10)
+ 
+ 	if err := c.cfg.FillPacketRequest(req, c.sessionID, seqStr, b); err != nil {
+ 		return 0, err
+@@ -141,17 +187,34 @@
+ }
+ 
+ func (c *PacketUpWriter) Close() error {
+-	ch := make(chan struct{})
+-	go func() { // flush in the background
+-		defer close(ch)
+-		c.flush()
+-	}()
+-	select {
+-	case <-ch:
+-	case <-time.After(time.Second):
+-	}
+-	c.cancel()
+-	httputils.CloseTransport(c.transport)
++	c.closeOnce.Do(func() {
++		c.writeMu.Lock()
++		c.closed = true
++		c.writeCond.Broadcast()
++		c.writeMu.Unlock()
++		ch := make(chan struct{})
++		go func() {
++			defer close(ch)
++			c.flush()
++			c.writeMu.Lock()
++			defer c.writeMu.Unlock()
++			for c.inFlight > 0 && c.ctx.Err() == nil {
++				c.writeCond.Wait()
++			}
++		}()
++		select {
++		case <-ch:
++		case <-time.After(time.Second):
++		}
++		c.cancel()
++		c.writeMu.Lock()
++		if c.flushErr == nil {
++			c.flushErr = net.ErrClosed
++		}
++		c.writeCond.Broadcast()
++		c.writeMu.Unlock()
++		httputils.CloseTransport(c.transport)
++	})
+ 	return nil
+ }
+ 
+--- /dev/null
++++ b/transport/xhttp/packet_pipeline_test.go
+@@ -0,0 +1,197 @@
++package xhttp
++
++import (
++	"bytes"
++	"context"
++	"encoding/base64"
++	"fmt"
++	"io"
++	"net"
++	"strconv"
++	"strings"
++	"sync"
++	"testing"
++	"time"
++
++	"github.com/metacubex/http"
++)
++
++type pipelineTransport func(*http.Request) (*http.Response, error)
++
++func (f pipelineTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
++func pipelineResponse(status int) *http.Response {
++	return &http.Response{StatusCode: status, Status: strconv.Itoa(status), Body: io.NopCloser(strings.NewReader(""))}
++}
++func pipelineWriter(tr http.RoundTripper) *PacketUpWriter {
++	ctx, cancel := context.WithCancel(context.Background())
++	w := &PacketUpWriter{ctx: ctx, cancel: cancel, cfg: &Config{Host: "example.test", Path: "/t/", UplinkDataPlacement: PlacementHeader, UplinkDataKey: "X-Data", UplinkChunkSize: "2048"}, scMaxEachPostBytes: 2048, scMinPostsIntervalMs: Range{Min: 1, Max: 1}, sessionID: "session", transport: tr}
++	w.writeCond = sync.Cond{L: &w.writeMu}
++	return w
++}
++func TestPacketPipelineConcurrencyAndIntegrity(t *testing.T) {
++	entered := make(chan struct{}, 32)
++	release := make(chan struct{})
++	rows := map[int][]byte{}
++	var mu sync.Mutex
++	w := pipelineWriter(pipelineTransport(func(r *http.Request) (*http.Response, error) {
++		parts := strings.Split(strings.TrimRight(r.URL.Path, "/"), "/")
++		seq, err := strconv.Atoi(parts[len(parts)-1])
++		if err != nil {
++			return nil, err
++		}
++		var encoded string
++		for i := 0; ; i++ {
++			v := r.Header.Get(fmt.Sprintf("X-Data-%d", i))
++			if v == "" {
++				break
++			}
++			encoded += v
++		}
++		b, err := base64.RawURLEncoding.DecodeString(encoded)
++		if err != nil {
++			return nil, err
++		}
++		mu.Lock()
++		rows[seq] = b
++		mu.Unlock()
++		entered <- struct{}{}
++		select {
++		case <-release:
++			return pipelineResponse(200), nil
++		case <-r.Context().Done():
++			return nil, r.Context().Err()
++		}
++	}))
++	defer w.Close()
++	data := make([]byte, 24*2048)
++	for i := range data {
++		data[i] = byte(i / 2048)
++	}
++	done := make(chan error, 1)
++	go func() { _, e := w.Write(data); done <- e }()
++	for i := 0; i < 16; i++ {
++		select {
++		case <-entered:
++		case <-time.After(2 * time.Second):
++			t.Fatal("packets serialized before previous response")
++		}
++	}
++	select {
++	case <-entered:
++		t.Fatal("unbounded pipeline")
++	case <-time.After(30 * time.Millisecond):
++	}
++	close(release)
++	select {
++	case err := <-done:
++		if err != nil {
++			t.Fatal(err)
++		}
++	case <-time.After(2 * time.Second):
++		t.Fatal("write stuck")
++	}
++	w.Close()
++	mu.Lock()
++	defer mu.Unlock()
++	var got []byte
++	for i := 0; i < len(rows); i++ {
++		got = append(got, rows[i]...)
++	}
++	if !bytes.Equal(data, got) {
++		t.Fatalf("payload corrupted: got %d want %d", len(got), len(data))
++	}
++}
++func TestPacketPipelineFailureUnblocksWriter(t *testing.T) {
++	w := pipelineWriter(pipelineTransport(func(r *http.Request) (*http.Response, error) { return pipelineResponse(413), nil }))
++	defer w.Close()
++	done := make(chan error, 1)
++	go func() { _, err := w.Write(make([]byte, 128*2048)); done <- err }()
++	select {
++	case err := <-done:
++		if err == nil {
++			t.Fatal("upload failure hidden")
++		}
++	case <-time.After(2 * time.Second):
++		t.Fatal("write remained blocked")
++	}
++}
++func TestPacketPipelineCloseCancelsStalledRequests(t *testing.T) {
++	w := pipelineWriter(pipelineTransport(func(r *http.Request) (*http.Response, error) { <-r.Context().Done(); return nil, r.Context().Err() }))
++	done := make(chan error, 1)
++	go func() { _, err := w.Write(make([]byte, 128*2048)); done <- err }()
++	time.Sleep(40 * time.Millisecond)
++	start := time.Now()
++	w.Close()
++	w.Close()
++	if time.Since(start) > 1500*time.Millisecond {
++		t.Fatal("unbounded close")
++	}
++	select {
++	case err := <-done:
++		if err == nil {
++			t.Fatal("closed write succeeded")
++		}
++	case <-time.After(time.Second):
++		t.Fatal("blocked writer leaked")
++	}
++	if _, err := w.Write([]byte("late")); err != net.ErrClosed {
++		t.Fatalf("write after close: %v", err)
++	}
++}
++
++func TestPacketPipelineCancelledContextUnblocksWriter(t *testing.T) {
++	w := pipelineWriter(pipelineTransport(func(r *http.Request) (*http.Response, error) { <-r.Context().Done(); return nil, r.Context().Err() }))
++	defer w.Close()
++	done := make(chan error, 1)
++	go func() { _, err := w.Write(make([]byte, 128*2048)); done <- err }()
++	time.Sleep(40 * time.Millisecond)
++	w.cancel()
++	select {
++	case err := <-done:
++		if err == nil {
++			t.Fatal("cancelled write succeeded")
++		}
++	case <-time.After(time.Second):
++		t.Fatal("cancelled writer leaked")
++	}
++}
++
++func TestPacketPipelineBoundsReorderingWindow(t *testing.T) {
++	entered := make(chan struct{}, 128)
++	release := make(chan struct{})
++	w := pipelineWriter(pipelineTransport(func(r *http.Request) (*http.Response, error) {
++		entered <- struct{}{}
++		if strings.HasSuffix(r.URL.Path, "/0") {
++			select {
++			case <-release:
++			case <-r.Context().Done():
++				return nil, r.Context().Err()
++			}
++		}
++		return pipelineResponse(200), nil
++	}))
++	defer w.Close()
++	done := make(chan error, 1)
++	go func() { _, err := w.Write(make([]byte, 64*2048)); done <- err }()
++	for i := 0; i < 16; i++ {
++		select {
++		case <-entered:
++		case <-time.After(time.Second):
++			t.Fatal("missing concurrent packet")
++		}
++	}
++	select {
++	case <-entered:
++		t.Fatal("later acknowledgements exceeded server reassembly window")
++	case <-time.After(100 * time.Millisecond):
++	}
++	close(release)
++	select {
++	case err := <-done:
++		if err != nil {
++			t.Fatal(err)
++		}
++	case <-time.After(2 * time.Second):
++		t.Fatal("window failed to advance")
++	}
++}
