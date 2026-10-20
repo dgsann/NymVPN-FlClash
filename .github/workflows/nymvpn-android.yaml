@@ -152,7 +152,7 @@ jobs:
           printf '%s' "$KEYSTORE" | base64 --decode > android/app/keystore.jks
           printf '\nstorePassword=%s\nkeyAlias=nymvpn\nkeyPassword=%s\n' "$STORE_PASSWORD" "$STORE_PASSWORD" >> android/local.properties
       - name: Build ARM64 canary
-        run: flutter build apk --release --target-platform android-arm64 --build-number=2026102010 --build-name=0.8.98-nymvpn.10
+        run: flutter build apk --release --target-platform android-arm64 --build-number=2026102011 --build-name=0.8.98-nymvpn.11
       - name: Remove signing material
         if: always()
         run: rm -f android/app/keystore.jks android/local.properties

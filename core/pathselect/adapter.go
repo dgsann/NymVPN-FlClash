@@ -300,14 +300,20 @@ type trackedConn struct {
 	session *session
 }
 
-func (c *trackedConn) Close() error { return c.session.Close() }
+func (c *trackedConn) Close() error            { return c.session.Close() }
+func (c *trackedConn) Upstream() any           { return c.Conn }
+func (c *trackedConn) ReaderReplaceable() bool { return true }
+func (c *trackedConn) WriterReplaceable() bool { return true }
 
 type trackedPacketConn struct {
 	C.PacketConn
 	session *session
 }
 
-func (c *trackedPacketConn) Close() error { return c.session.Close() }
+func (c *trackedPacketConn) Close() error            { return c.session.Close() }
+func (c *trackedPacketConn) Upstream() any           { return c.PacketConn }
+func (c *trackedPacketConn) ReaderReplaceable() bool { return true }
+func (c *trackedPacketConn) WriterReplaceable() bool { return true }
 
 func (a *Adapter) track(conn io.Closer, route C.Proxy, life context.Context) *session {
 	s := &session{owner: a, conn: conn, route: route, life: life}
