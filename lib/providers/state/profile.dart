@@ -10,6 +10,7 @@ ProfilesState profilesState(Ref ref) {
 @riverpod
 Profile? currentProfile(Ref ref) {
   final profileId = ref.watch(currentProfileIdProvider);
+  if (profileId == null) return null;
   return ref.watch(
     profilesProvider.select((state) => state.getProfile(profileId)),
   );
