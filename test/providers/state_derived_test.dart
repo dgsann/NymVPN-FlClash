@@ -29,6 +29,32 @@ void main() {
     container.dispose();
   });
 
+  test('managed IPv6 survives patches and reaches the Android service', () async {
+    await AppLocalizations.load(const Locale('en'));
+    final managed = Profile.normal(
+      url: 'https://sub.pixel-node.online/sub/123/test-token',
+    );
+    _profiles(container).replace([managed]);
+    container.read(currentProfileIdProvider.notifier).update((_) => managed.id);
+    container.listen(updateParamsProvider, (_, _) {});
+    container.listen(vpnStateProvider, (_, _) {});
+    container.listen(sharedStateProvider, (_, _) {});
+    expect(container.read(patchClashConfigProvider).ipv6, isFalse);
+    expect(container.read(vpnSettingProvider).ipv6, isFalse);
+    expect(container.read(updateParamsProvider).ipv6, isTrue);
+    expect(container.read(vpnStateProvider).vpnProps.ipv6, isTrue);
+    expect(container.read(sharedStateProvider).vpnOptions?.ipv6, isTrue);
+    container.read(patchClashConfigProvider.notifier).update(
+      (state) => state.copyWith(mixedPort: 7891),
+    );
+    expect(container.read(updateParamsProvider).ipv6, isTrue);
+    final external = managed.copyWith(url: 'https://example.com/profile');
+    _profiles(container).replace([external]);
+    expect(container.read(updateParamsProvider).ipv6, isFalse);
+    expect(container.read(vpnStateProvider).vpnProps.ipv6, isFalse);
+    expect(container.read(sharedStateProvider).vpnOptions?.ipv6, isFalse);
+  });
+
   test('group derivation sanitizes runtime state and respects clash mode', () {
     final groups = [
       const Group(

@@ -2,6 +2,9 @@ part of '../state.dart';
 
 @riverpod
 UpdateParams updateParams(Ref ref) {
+  final profileUrl = ref.watch(
+    currentProfileProvider.select((profile) => profile?.url ?? ''),
+  );
   final routeMode = ref.watch(
     networkSettingProvider.select((state) => state.routeMode),
   );
@@ -17,7 +20,7 @@ UpdateParams updateParams(Ref ref) {
         findProcessMode: state.findProcessMode,
         mode: state.mode,
         logLevel: state.logLevel,
-        ipv6: state.ipv6,
+        ipv6: nymvpnEffectiveIpv6(profileUrl, state.ipv6),
         tcpConcurrent: state.tcpConcurrent,
         externalController: state.externalController,
         unifiedDelay: state.unifiedDelay,
@@ -79,11 +82,19 @@ TrayTitleState trayTitleState(Ref ref) {
 
 @riverpod
 VpnState vpnState(Ref ref) {
+  final profileUrl = ref.watch(
+    currentProfileProvider.select((profile) => profile?.url ?? ''),
+  );
   final vpnProps = ref.watch(vpnSettingProvider);
   final stack = ref.watch(
     patchClashConfigProvider.select((state) => state.tun.stack),
   );
-  return VpnState(stack: stack, vpnProps: vpnProps);
+  return VpnState(
+    stack: stack,
+    vpnProps: vpnProps.copyWith(
+      ipv6: nymvpnEffectiveIpv6(profileUrl, vpnProps.ipv6),
+    ),
+  );
 }
 
 @riverpod
@@ -145,6 +156,9 @@ bool shouldPatchSystemDns(Ref ref) {
 
 @riverpod
 SharedState sharedState(Ref ref) {
+  final profileUrl = ref.watch(
+    currentProfileProvider.select((profile) => profile?.url ?? ''),
+  );
   ref.watch(loadedLocaleProvider);
   final currentProfile = ref.watch(
     currentProfileProvider.select(
@@ -211,7 +225,7 @@ SharedState sharedState(Ref ref) {
       // still flows through TUN.
       systemProxy: vpnSetting.systemProxy && !networkSetting.authenticated,
       port: port,
-      ipv6: vpnSetting.ipv6,
+      ipv6: nymvpnEffectiveIpv6(profileUrl, vpnSetting.ipv6),
       dnsHijacking: vpnSetting.dnsHijacking,
       accessControlProps: vpnSetting.accessControlProps,
       allowBypass: vpnSetting.allowBypass,
