@@ -4,6 +4,15 @@ import 'package:fl_clash/common/profile_refresh.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('managed IPv6 works without changing the saved global preference', () {
+    const url = 'https://sub.pixel-node.online/sub/123/test-token';
+    for (var restart = 0; restart < 3; restart++) {
+      expect(nymvpnEffectiveIpv6(url, false), isTrue);
+    }
+    expect(nymvpnEffectiveIpv6('https://example.com/profile', false), isFalse);
+    expect(nymvpnEffectiveIpv6('https://example.com/profile', true), isTrue);
+    expect(nymvpnEffectiveIpv6('', false), isFalse);
+  });
   test('automatic setup only accepts the exact HTTPS subscription origin', () {
     expect(
       isNymvpnSubscription('https://sub.pixel-node.online/sub/123/test-token'),

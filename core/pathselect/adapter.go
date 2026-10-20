@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"sync"
 	"time"
 
@@ -32,11 +33,32 @@ type Adapter struct {
 	selected   C.Proxy
 	validUntil time.Time
 	retryAfter time.Time
+	verified   bool
+	healthyFor time.Duration
+	lastUse    time.Time
+	sessions   map[*session]struct{}
+	udpRoute   *Adapter
 }
 
 func New(name string, cfg Config, candidates []C.Proxy) *Adapter {
-	return &Adapter{Base: outbound.NewBase(outbound.BaseOption{Name: name, Addr: "auto-tcp", Type: C.Socks5}),
-		candidates: append([]C.Proxy(nil), candidates...), endpoint: cfg.ProbeURL, check: probe}
+	a := &Adapter{Base: outbound.NewBase(outbound.BaseOption{Name: name, Addr: "auto-tcp", Type: C.Socks5, UDP: cfg.UDP}),
+		candidates: append([]C.Proxy(nil), candidates...), endpoint: cfg.ProbeURL, check: probe,
+		healthyFor: 5 * time.Minute, sessions: make(map[*session]struct{})}
+	if cfg.Version == 2 {
+		a.verified, a.check, a.healthyFor = true, probeTransfer, time.Minute
+	}
+	if cfg.UDP {
+		cfg.UDP = false
+		var udp []C.Proxy
+		for _, candidate := range candidates {
+			if candidate.SupportUDP() {
+				udp = append(udp, candidate)
+			}
+		}
+		a.udpRoute = New(name, cfg, udp)
+		a.udpRoute.check = probeUDP
+	}
+	return a
 }
 
 func (a *Adapter) resetLocked(active bool) {
@@ -50,10 +72,16 @@ func (a *Adapter) resetLocked(active bool) {
 	a.validUntil, a.retryAfter = time.Time{}, time.Time{}
 	if active && !a.closed {
 		a.life, a.stop = context.WithCancel(context.Background())
+		if a.verified {
+			go a.monitor(a.life)
+		}
 	}
 }
 
 func (a *Adapter) SetActive(active bool) {
+	if a.udpRoute != nil {
+		a.udpRoute.SetActive(active)
+	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if active && a.life != nil {
@@ -63,12 +91,18 @@ func (a *Adapter) SetActive(active bool) {
 }
 
 func (a *Adapter) Reset() {
+	if a.udpRoute != nil {
+		a.udpRoute.Reset()
+	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.resetLocked(a.life != nil)
 }
 
 func (a *Adapter) Close() error {
+	if a.udpRoute != nil {
+		_ = a.udpRoute.Close()
+	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.closed = true
@@ -124,19 +158,29 @@ func (a *Adapter) run(g *round, preferred C.Proxy) {
 	}
 	if winner == nil && g.ctx.Err() == nil {
 		results := make(chan C.Proxy, len(a.candidates))
+		jobs := make(chan C.Proxy, len(a.candidates))
 		count := 0
 		for _, candidate := range a.candidates {
 			if candidate == preferred {
 				continue
 			}
 			count++
-			go func(p C.Proxy) {
-				if a.check(g.ctx, p, a.endpoint) == nil {
-					results <- p
-				} else {
-					results <- nil
+			jobs <- candidate
+		}
+		close(jobs)
+		for range min(4, count) {
+			go func() {
+				for p := range jobs {
+					if g.ctx.Err() != nil {
+						return
+					}
+					if a.check(g.ctx, p, a.endpoint) == nil {
+						results <- p
+					} else {
+						results <- nil
+					}
 				}
-			}(candidate)
+			}()
 		}
 		for range count {
 			select {
@@ -152,16 +196,28 @@ func (a *Adapter) run(g *round, preferred C.Proxy) {
 		}
 	}
 	a.mu.Lock()
+	var retired []*session
 	if a.current == g && g.ctx.Err() == nil && a.life != nil {
 		a.current = nil
 		a.selected = winner
 		if winner == nil {
+			if a.verified {
+				a.selected = preferred
+				a.validUntil = time.Time{}
+			}
 			a.retryAfter = time.Now().Add(15 * time.Second)
 			log.Warnln("[AutoTCP] no candidate completed the transfer check")
 		} else {
-			a.validUntil = time.Now().Add(5 * time.Minute)
+			a.validUntil = time.Now().Add(a.healthyFor)
 			g.winner = winner
 			log.Infoln("[AutoTCP] verified path: %s", winner.Name())
+			if a.verified && preferred != nil && preferred != winner {
+				for s := range a.sessions {
+					if s.route == preferred && s.life == a.life {
+						retired = append(retired, s)
+					}
+				}
+			}
 		}
 	} else if a.current == g {
 		a.current = nil
@@ -169,6 +225,9 @@ func (a *Adapter) run(g *round, preferred C.Proxy) {
 	}
 	a.mu.Unlock()
 	close(g.done)
+	for _, s := range retired {
+		_ = s.Close()
+	}
 }
 
 func (a *Adapter) DialContext(ctx context.Context, metadata *C.Metadata) (C.Conn, error) {
@@ -196,6 +255,10 @@ func (a *Adapter) DialContext(ctx context.Context, metadata *C.Metadata) (C.Conn
 		return nil, errors.New("AutoTCP stopped or network changed")
 	}
 	conn.AppendToChains(a)
+	if a.verified {
+		s := a.track(conn, selected, life)
+		return &trackedConn{Conn: conn, session: s}, nil
+	}
 	return conn, nil
 }
 
@@ -206,5 +269,105 @@ func (a *Adapter) MarshalJSON() ([]byte, error) {
 	if a.selected != nil {
 		now = a.selected.Name()
 	}
-	return json.Marshal(map[string]any{"type": a.Type().String(), "now": now})
+	return json.Marshal(map[string]any{"type": a.Type().String(), "now": now, "udp": a.SupportUDP()})
+}
+
+type session struct {
+	owner *Adapter
+	conn  io.Closer
+	route C.Proxy
+	life  context.Context
+	once  sync.Once
+	stop  func() bool
+}
+
+func (s *session) Close() error {
+	var err error
+	s.once.Do(func() {
+		s.owner.mu.Lock()
+		delete(s.owner.sessions, s)
+		if s.stop != nil {
+			s.stop()
+		}
+		s.owner.mu.Unlock()
+		err = s.conn.Close()
+	})
+	return err
+}
+
+type trackedConn struct {
+	C.Conn
+	session *session
+}
+
+func (c *trackedConn) Close() error { return c.session.Close() }
+
+type trackedPacketConn struct {
+	C.PacketConn
+	session *session
+}
+
+func (c *trackedPacketConn) Close() error { return c.session.Close() }
+
+func (a *Adapter) track(conn io.Closer, route C.Proxy, life context.Context) *session {
+	s := &session{owner: a, conn: conn, route: route, life: life}
+	a.mu.Lock()
+	a.sessions[s] = struct{}{}
+	a.lastUse = time.Now()
+	s.stop = context.AfterFunc(life, func() { _ = s.Close() })
+	a.mu.Unlock()
+	return s
+}
+
+func (a *Adapter) monitor(life context.Context) {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-life.Done():
+			return
+		case <-ticker.C:
+			a.recheck(life)
+		}
+	}
+}
+
+func (a *Adapter) recheck(life context.Context) {
+	a.mu.Lock()
+	active := a.life == life && (len(a.sessions) > 0 || time.Since(a.lastUse) < 2*time.Minute)
+	due := time.Now().After(a.validUntil)
+	a.mu.Unlock()
+	if active && due {
+		_, _, _ = a.choose(life)
+	}
+}
+
+func (a *Adapter) ListenPacketContext(ctx context.Context, metadata *C.Metadata) (C.PacketConn, error) {
+	if a.udpRoute == nil {
+		return nil, C.ErrNotSupport
+	}
+	u := a.udpRoute
+	selected, life, err := u.choose(ctx)
+	if err != nil {
+		return nil, err
+	}
+	dialCtx, cancel := context.WithCancel(ctx)
+	stop := context.AfterFunc(life, cancel)
+	defer stop()
+	defer cancel()
+	conn, err := selected.ListenPacketContext(dialCtx, metadata)
+	if err != nil {
+		u.mu.Lock()
+		if u.life == life && u.selected == selected {
+			u.validUntil = time.Time{}
+		}
+		u.mu.Unlock()
+		return nil, errors.New("verified UDP destination connection failed")
+	}
+	if life.Err() != nil {
+		_ = conn.Close()
+		return nil, errors.New("automatic route stopped or network changed")
+	}
+	conn.AppendToChains(a)
+	return &trackedPacketConn{PacketConn: conn, session: u.track(conn, selected, life)}, nil
 }

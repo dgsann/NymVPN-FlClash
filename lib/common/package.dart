@@ -9,6 +9,7 @@ extension PackageInfoExtension on PackageInfo {
     '$appName/v$version',
     'clash-verge',
     'Platform/${Platform.operatingSystem}',
+    'nymvpn-auto/2',
   ].join(' ');
 }
 

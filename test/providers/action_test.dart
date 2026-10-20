@@ -19,8 +19,35 @@ import '../helpers/test_profiles.dart';
 
 class _MockCoreHandlerInterface extends Mock implements CoreHandlerInterface {}
 
+class _RecordingProfilesAction extends ProfilesAction {
+  int updates = 0;
+
+  @override
+  Future<void> updateProfile(Profile profile, {bool showLoading = false}) async {
+    updates++;
+  }
+}
+
 void main() {
   group('ProfilesAction', () {
+    test('refreshes a fresh managed profile once after connection', () async {
+      final profile = Profile.normal(
+        url: 'https://sub.pixel-node.online/sub/123/token',
+      ).copyWith(autoUpdate: true, lastUpdateDate: DateTime.now());
+      final action = _RecordingProfilesAction();
+      final container = ProviderContainer(
+        overrides: [
+          profilesProvider.overrideWith(() => TestProfiles([profile])),
+          profilesActionProvider.overrideWith(() => action),
+          isStartProvider.overrideWith((ref) => true),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(profilesActionProvider.notifier);
+      await action.autoUpdateProfiles();
+      await action.autoUpdateProfiles();
+      expect(action.updates, 1);
+    });
     test('keeps edited profile data when remote update fails', () async {
       final original = Profile.normal(label: 'old label', url: 'bad-url');
       final edited = original.copyWith(

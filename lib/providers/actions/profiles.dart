@@ -8,6 +8,7 @@ class ProfilesAction extends _$ProfilesAction {
   void build() {}
 
   final _refreshQueue = ProfileRefreshQueue();
+  final _managedSessionRefresh = <int, String>{};
   bool _importing = false;
 
   void updateCurrentSelectedMap(String groupName, String proxyName) {
@@ -47,16 +48,20 @@ class ProfilesAction extends _$ProfilesAction {
       if (!profile.autoUpdate || !_refreshQueue.canRetry(profile.id)) continue;
       final managed = isNymvpnSubscription(profile.url);
       if (managed && !ref.read(isStartProvider)) continue;
+      final firstManagedRefresh =
+          managed && _managedSessionRefresh[profile.id] != profile.url;
       final interval =
           managed && profile.autoUpdateDuration > const Duration(hours: 1)
           ? const Duration(hours: 1)
           : profile.autoUpdateDuration;
       final isNotNeedUpdate = profile.lastUpdateDate?.add(interval).isBeforeNow;
-      if (isNotNeedUpdate == false || profile.type == ProfileType.file) {
+      if ((!firstManagedRefresh && isNotNeedUpdate == false) ||
+          profile.type == ProfileType.file) {
         continue;
       }
       try {
         await updateProfile(profile);
+        if (managed) _managedSessionRefresh[profile.id] = profile.url;
       } catch (e) {
         commonPrint.log(
           'Subscription refresh failed (${e.runtimeType}); keeping saved profile',

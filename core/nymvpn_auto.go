@@ -62,12 +62,19 @@ func attachAuto(raw *config.RawConfig, cfg *config.Config) error {
 			return errors.New("AutoTCP placeholder is missing")
 		}
 		candidates := make([]C.Proxy, 0, len(options.Candidates))
+		udpCandidates := 0
 		for _, name := range options.Candidates {
 			p := cfg.Proxies[name]
 			if p == nil {
 				return errors.New("AutoTCP candidate is missing")
 			}
 			candidates = append(candidates, p)
+			if p.SupportUDP() {
+				udpCandidates++
+			}
+		}
+		if options.UDP && udpCandidates == 0 {
+			return errors.New("verified routing requires a UDP-capable candidate")
 		}
 		wrapped.ProxyAdapter = pathselect.New(name, *options, candidates)
 	}

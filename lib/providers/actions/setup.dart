@@ -414,6 +414,10 @@ class SetupAction extends _$SetupAction {
     }
     final realPatchConfig = patchConfig.copyWith(
       tun: patchConfig.tun.getRealTun(routeMode),
+      ipv6: nymvpnEffectiveIpv6(
+        ref.read(profileProvider(profileId))?.url ?? '',
+        patchConfig.ipv6,
+      ),
     );
     Map<String, dynamic> rawConfig = configMap;
     if (scriptContent?.isNotEmpty == true) {

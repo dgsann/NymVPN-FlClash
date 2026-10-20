@@ -20,6 +20,10 @@ Duration subscriptionUpdateInterval(String? header, Duration fallback) {
   return Duration(hours: hours.clamp(1, 24));
 }
 
+bool nymvpnEffectiveIpv6(String url, bool configured) {
+  return configured || isNymvpnSubscription(url);
+}
+
 Map<String, String> nymvpnInitialSelections(String yaml) {
   final config = loadYaml(yaml);
   if (config is! Map) return {};

@@ -74,3 +74,60 @@ func TestAutoRejectsUnsafeConfiguration(t *testing.T) {
 		}
 	}
 }
+
+func TestVerifiedRouteSurvivesImportAndSupportsUDP(t *testing.T) {
+	const profile = `ipv6: true
+proxies:
+  - name: v6
+    type: vless
+    server: "2001:db8::1"
+    port: 443
+    uuid: 00000000-0000-4000-8000-000000000001
+    udp: true
+  - name: Verified
+    type: socks5
+    server: 127.0.0.1
+    port: 1
+    udp: true
+    x-nymvpn-auto:
+      version: 2
+      udp: true
+      candidates: [v6]
+      probe-url: https://example.test/probe/v2/1/token
+proxy-groups:
+  - name: VPN
+    type: select
+    proxies: [Verified]
+rules: ['MATCH,VPN']
+`
+	raw, err := unmarshalProfile([]byte(profile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "profile.json")
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := loadConfig(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer closeAuto(cfg)
+	p := cfg.Proxies["Verified"]
+	if !p.SupportUDP() {
+		t.Fatal("UDP capability lost at import")
+	}
+	if cfg.Proxies["VPN"].Adapter().Unwrap(&C.Metadata{NetWork: C.UDP}, false) != p {
+		t.Fatal("UDP group retained placeholder")
+	}
+	setAutoActive(cfg, true)
+	resetAuto(cfg)
+	setAutoActive(cfg, false)
+	if _, err := p.ListenPacketContext(context.Background(), &C.Metadata{NetWork: C.UDP}); err == nil {
+		t.Fatal("UDP escaped after stop")
+	}
+}
