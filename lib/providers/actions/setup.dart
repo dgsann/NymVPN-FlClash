@@ -386,6 +386,7 @@ class SetupAction extends _$SetupAction {
   }) async {
     final profileId = setupState.profileId;
     if (profileId == null) return (yaml: '', md5: '');
+    final profileUrl = ref.read(profileProvider(profileId))?.url ?? '';
     final defaultUA = globalState.packageInfo.ua;
     final networkSetting = ref.read(
       networkSettingProvider.select(
@@ -415,7 +416,7 @@ class SetupAction extends _$SetupAction {
     final realPatchConfig = patchConfig.copyWith(
       tun: patchConfig.tun.getRealTun(routeMode),
       ipv6: nymvpnEffectiveIpv6(
-        ref.read(profileProvider(profileId))?.url ?? '',
+        profileUrl,
         patchConfig.ipv6,
       ),
     );
@@ -430,7 +431,7 @@ class SetupAction extends _$SetupAction {
         proxyGroups: proxyGroups,
         profilesPath: directory,
         profileId: profileId,
-        rawConfig: rawConfig,
+        rawConfig: nymvpnPrepareConfig(profileUrl, rawConfig),
         realPatchConfig: realPatchConfig,
         overrideDns: overrideDns,
         appendSystemDns: appendSystemDns,

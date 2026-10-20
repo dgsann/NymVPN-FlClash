@@ -4,6 +4,25 @@ import 'package:fl_clash/common/profile_refresh.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('saved managed profiles can refresh through a failed VPN route', () {
+    final original = <String, dynamic>{
+      'rules': ['MATCH,VPN'],
+      'dns': {'ipv6': false},
+    };
+    const url = 'https://sub.pixel-node.online/sub/123/test-token';
+    final prepared = nymvpnPrepareConfig(url, original);
+    expect(prepared['rules'], [
+      'DOMAIN,sub.pixel-node.online,DIRECT',
+      'MATCH,VPN',
+    ]);
+    expect(prepared['dns'], original['dns']);
+    expect(original['rules'], ['MATCH,VPN']);
+    expect(nymvpnPrepareConfig(url, prepared), prepared);
+    expect(
+      nymvpnPrepareConfig('https://example.com/profile', original),
+      same(original),
+    );
+  });
   test('managed IPv6 works without changing the saved global preference', () {
     const url = 'https://sub.pixel-node.online/sub/123/test-token';
     for (var restart = 0; restart < 3; restart++) {

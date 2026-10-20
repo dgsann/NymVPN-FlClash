@@ -24,6 +24,22 @@ bool nymvpnEffectiveIpv6(String url, bool configured) {
   return configured || isNymvpnSubscription(url);
 }
 
+Map<String, dynamic> nymvpnPrepareConfig(
+  String url,
+  Map<String, dynamic> config,
+) {
+  if (!isNymvpnSubscription(url)) return config;
+  const controlRule = 'DOMAIN,sub.pixel-node.online,DIRECT';
+  return {
+    ...config,
+    'rules': [
+      controlRule,
+      for (final rule in (config['rules'] as List? ?? []))
+        if (rule != controlRule) rule,
+    ],
+  };
+}
+
 Map<String, String> nymvpnInitialSelections(String yaml) {
   final config = loadYaml(yaml);
   if (config is! Map) return {};
