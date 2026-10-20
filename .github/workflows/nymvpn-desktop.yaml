@@ -1,6 +1,16 @@
 name: NymVPN desktop
 on:
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Source commit or tag to build (empty uses this workflow commit)
+        type: string
+        default: ''
+      platforms:
+        description: Desktop packages to build
+        type: choice
+        options: [all, windows]
+        default: all
   push:
     branches: [codex/nymvpn-app-refresh]
     paths: [.github/workflows/nymvpn-desktop.yaml]
@@ -12,6 +22,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -24,7 +36,7 @@ jobs:
           dart run intl_utils:generate
           dart run build_runner build --delete-conflicting-outputs
           dart format lib/common/desktop_power.dart lib/providers/action.dart lib/providers/actions/setup.dart lib/views/nymvpn_customization.dart test/common/desktop_power_test.dart
-          flutter test test/common/desktop_power_test.dart test/providers/setup_action_test.dart test/core/desktop/ test/core/service_test.dart test/providers/system_action_test.dart test/widgets/nymvpn_customization_test.dart test/models/nymvpn_customization_test.dart test/common/nymvpn_profile_test.dart
+          flutter test test/common/desktop_power_test.dart test/providers/setup_action_test.dart test/core/desktop/ test/core/service_test.dart test/providers/system_action_test.dart test/widgets/nymvpn_customization_test.dart test/models/nymvpn_customization_test.dart test/common/nymvpn_profile_test.dart test/providers/state_derived_test.dart test/providers/action_test.dart
           flutter analyze lib/common/desktop_power.dart lib/providers/action.dart lib/views/nymvpn_customization.dart test/common/desktop_power_test.dart
       - uses: actions/upload-artifact@v4
         if: always()
@@ -45,22 +57,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-2022
-            platform: windows
-            arch: x64
-          - os: macos-15-intel
-            platform: macos
-            arch: x64
-          - os: macos-latest
-            platform: macos
-            arch: arm64
+        include: ${{ fromJSON(inputs.platforms == 'windows' && '[{"os":"windows-2022","platform":"windows","arch":"x64"}]' || '[{"os":"windows-2022","platform":"windows","arch":"x64"},{"os":"macos-15-intel","platform":"macos","arch":"x64"},{"os":"macos-latest","platform":"macos","arch":"arm64"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          ref: ${{ inputs.source_ref || github.sha }}
       - uses: actions/download-artifact@v4
         with:
           name: NymVPN-desktop-generated
@@ -85,7 +89,7 @@ jobs:
           from pathlib import Path
           import re
           p=Path('pubspec.yaml')
-          p.write_text(re.sub(r'^version:.*$', 'version: 0.8.98-nymvpn.8+8', p.read_text(), flags=re.M))
+          p.write_text(re.sub(r'^version:.*$', 'version: 0.8.98-nymvpn.10+10', p.read_text(), flags=re.M))
       - name: Windows build prerequisites
         if: matrix.platform == 'windows'
         shell: pwsh
@@ -101,6 +105,34 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
           xcodebuild -version
           npm install -g appdmg
+      - name: Verify Windows core and helper
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          Push-Location core
+          go test -count=1 . ./pathselect ./telemost ./portprofile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go vet . ./pathselect ./telemost ./portprofile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Pop-Location
+          cargo test --manifest-path services/helper/Cargo.toml --features windows-service
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify Windows lifecycle and managed profiles
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $taskPubspec = Get-Content -LiteralPath pubspec.yaml -Raw
+          try {
+            [IO.File]::WriteAllText((Join-Path $PWD 'pubspec.yaml'), $taskPubspec.Replace('build_assets: true', 'build_assets: false'))
+            flutter pub get
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            flutter test test/core/desktop/ test/core/service_test.dart test/providers/state_derived_test.dart test/providers/action_test.dart test/common/nymvpn_profile_test.dart
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } finally {
+            [IO.File]::WriteAllText((Join-Path $PWD 'pubspec.yaml'), $taskPubspec)
+          }
       - name: Build desktop packages
         run: |
           flutter pub get
@@ -109,15 +141,35 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import hashlib, shutil, subprocess
+          import hashlib, json, shutil, struct, subprocess, zipfile
           platform='${{ matrix.platform }}'; arch='${{ matrix.arch }}'
           out=Path('nymvpn-release'); out.mkdir()
           expected=['.exe','.zip'] if platform=='windows' else ['.dmg']
           for ext in expected:
               candidates=[p for p in Path('dist').rglob('*'+ext) if p.is_file()]
               assert len(candidates)==1, (ext,candidates)
-              target=out/f'NymVPN-0.8.98-nymvpn.8-{platform}-{arch}{ext}'
+              target=out/f'NymVPN-0.8.98-nymvpn.10-{platform}-{arch}{ext}'
               shutil.copyfile(candidates[0],target)
+          metadata={'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+                    'version':'0.8.98-nymvpn.10','platform':platform,'architecture':arch}
+          if platform=='windows':
+              archive=next(out.glob('*.zip'))
+              with zipfile.ZipFile(archive) as z:
+                  assert z.testzip() is None
+                  binaries={}
+                  for name in ['FlClash.exe','FlClashCore.exe','FlClashHelperService.exe']:
+                      matches=[p for p in z.namelist() if Path(p).name==name]
+                      assert len(matches)==1, (name,matches)
+                      data=z.read(matches[0]); pe=struct.unpack_from('<I',data,0x3c)[0]
+                      assert data[:2]==b'MZ' and data[pe:pe+4]==b'PE\0\0'
+                      assert struct.unpack_from('<H',data,pe+4)[0]==0x8664
+                      binaries[name]=data
+                  core_sha=hashlib.sha256(binaries['FlClashCore.exe']).hexdigest()
+                  assert core_sha.encode() in binaries['FlClashHelperService.exe']
+                  metadata['core_sha256']=core_sha
+                  metadata['helper_core_hash_matches']=True
+                  metadata['archive_integrity']=True
+          (out/f'verification-{platform}-{arch}.json').write_text(json.dumps(metadata,indent=2)+'\n')
           if platform=='macos':
               app=Path('build/macos/Build/Products/Release/NymVPN.app')
               assert app.is_dir()
