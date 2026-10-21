@@ -168,7 +168,11 @@ func (a *Adapter) run(g *round, preferred C.Proxy) {
 			jobs <- candidate
 		}
 		close(jobs)
-		for range min(4, count) {
+		parallelism := 4
+		if a.verified {
+			parallelism = maxVerifiedCandidates
+		}
+		for range min(parallelism, count) {
 			go func() {
 				for p := range jobs {
 					if g.ctx.Err() != nil {

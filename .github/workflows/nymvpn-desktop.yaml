@@ -89,7 +89,7 @@ jobs:
           from pathlib import Path
           import re
           p=Path('pubspec.yaml')
-          p.write_text(re.sub(r'^version:.*$', 'version: 0.8.98-nymvpn.11+11', p.read_text(), flags=re.M))
+          p.write_text(re.sub(r'^version:.*$', 'version: 0.8.98-nymvpn.12+12', p.read_text(), flags=re.M))
       - name: Windows build prerequisites
         if: matrix.platform == 'windows'
         shell: pwsh
@@ -148,10 +148,10 @@ jobs:
           for ext in expected:
               candidates=[p for p in Path('dist').rglob('*'+ext) if p.is_file()]
               assert len(candidates)==1, (ext,candidates)
-              target=out/f'NymVPN-0.8.98-nymvpn.11-{platform}-{arch}{ext}'
+              target=out/f'NymVPN-0.8.98-nymvpn.12-{platform}-{arch}{ext}'
               shutil.copyfile(candidates[0],target)
           metadata={'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
-                    'version':'0.8.98-nymvpn.11','platform':platform,'architecture':arch}
+                    'version':'0.8.98-nymvpn.12','platform':platform,'architecture':arch}
           if platform=='windows':
               archive=next(out.glob('*.zip'))
               with zipfile.ZipFile(archive) as z:

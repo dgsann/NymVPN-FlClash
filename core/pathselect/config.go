@@ -10,6 +10,8 @@ import (
 
 const Field = "x-nymvpn-auto"
 
+const maxVerifiedCandidates = 12
+
 type Config struct {
 	Version    int      `json:"version,omitempty"`
 	UDP        bool     `json:"udp,omitempty"`
@@ -39,7 +41,7 @@ func Parse(node map[string]any) (*Config, error) {
 	}
 	limit := 4
 	if cfg.Version == 2 {
-		limit = 12
+		limit = maxVerifiedCandidates
 	} else if cfg.Version != 0 || cfg.UDP {
 		return nil, errors.New("unsupported automatic route version")
 	}

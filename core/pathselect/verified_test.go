@@ -168,7 +168,7 @@ func TestUDPChoiceIsIndependentAndFailsClosed(t *testing.T) {
 
 func TestVerifiedCandidateConcurrencyIsBounded(t *testing.T) {
 	var candidates []C.Proxy
-	for i := range 12 {
+	for i := range 16 {
 		candidates = append(candidates, fake(fmt.Sprint(i)))
 	}
 	a := New("verified", Config{Version: 2}, candidates)
@@ -190,7 +190,7 @@ func TestVerifiedCandidateConcurrencyIsBounded(t *testing.T) {
 	if _, _, err := a.choose(context.Background()); err == nil {
 		t.Fatal("failed probes accepted")
 	}
-	if peak.Load() > 4 {
+	if peak.Load() > 12 {
 		t.Fatal("probe fanout exceeded budget")
 	}
 }
