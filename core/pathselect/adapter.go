@@ -14,6 +14,7 @@ import (
 )
 
 type round struct {
+	life   context.Context
 	ctx    context.Context
 	cancel context.CancelFunc
 	done   chan struct{}
@@ -33,6 +34,7 @@ type Adapter struct {
 	selected   C.Proxy
 	validUntil time.Time
 	retryAfter time.Time
+	failures   int
 	verified   bool
 	healthyFor time.Duration
 	lastUse    time.Time
@@ -70,9 +72,11 @@ func (a *Adapter) resetLocked(active bool) {
 	}
 	a.life, a.stop, a.current, a.selected = nil, nil, nil, nil
 	a.validUntil, a.retryAfter = time.Time{}, time.Time{}
+	a.failures = 0
 	if active && !a.closed {
 		a.life, a.stop = context.WithCancel(context.Background())
 		if a.verified {
+			a.lastUse = time.Now()
 			go a.monitor(a.life)
 		}
 	}
@@ -111,13 +115,21 @@ func (a *Adapter) Close() error {
 }
 
 func (a *Adapter) choose(ctx context.Context) (C.Proxy, context.Context, error) {
+	return a.selectRoute(ctx, true)
+}
+
+func (a *Adapter) selectRoute(ctx context.Context, touch bool) (C.Proxy, context.Context, error) {
 	a.mu.Lock()
 	if a.life == nil || a.closed {
 		a.mu.Unlock()
 		return nil, nil, errors.New("AutoTCP is stopped")
 	}
 	life := a.life
-	if a.selected != nil && time.Now().Before(a.validUntil) {
+	if touch {
+		a.lastUse = time.Now()
+	}
+	if a.selected != nil && time.Now().Before(a.validUntil) &&
+		(touch || !a.verified || time.Now().Before(a.validUntil.Add(-refreshLead))) {
 		selected := a.selected
 		a.mu.Unlock()
 		return selected, life, nil
@@ -129,7 +141,7 @@ func (a *Adapter) choose(ctx context.Context) (C.Proxy, context.Context, error) 
 	g := a.current
 	if g == nil {
 		probeCtx, cancel := context.WithTimeout(life, 50*time.Second)
-		g = &round{ctx: probeCtx, cancel: cancel, done: make(chan struct{})}
+		g = &round{life: life, ctx: probeCtx, cancel: cancel, done: make(chan struct{})}
 		a.current = g
 		go a.run(g, a.selected)
 	}
@@ -152,55 +164,10 @@ func (a *Adapter) choose(ctx context.Context) (C.Proxy, context.Context, error) 
 
 func (a *Adapter) run(g *round, preferred C.Proxy) {
 	defer g.cancel()
-	var winner C.Proxy
-	if preferred != nil && a.check(g.ctx, preferred, a.endpoint) == nil {
-		winner = preferred
-	}
-	if winner == nil && g.ctx.Err() == nil {
-		results := make(chan C.Proxy, len(a.candidates))
-		jobs := make(chan C.Proxy, len(a.candidates))
-		count := 0
-		for _, candidate := range a.candidates {
-			if candidate == preferred {
-				continue
-			}
-			count++
-			jobs <- candidate
-		}
-		close(jobs)
-		parallelism := 4
-		if a.verified {
-			parallelism = maxVerifiedCandidates
-		}
-		for range min(parallelism, count) {
-			go func() {
-				for p := range jobs {
-					if g.ctx.Err() != nil {
-						return
-					}
-					if a.check(g.ctx, p, a.endpoint) == nil {
-						results <- p
-					} else {
-						results <- nil
-					}
-				}
-			}()
-		}
-		for range count {
-			select {
-			case p := <-results:
-				if p != nil {
-					winner = p
-				}
-			case <-g.ctx.Done():
-			}
-			if winner != nil || g.ctx.Err() != nil {
-				break
-			}
-		}
-	}
+	winner, preferredFailed, pending := a.selectCandidate(g, preferred)
 	a.mu.Lock()
 	var retired []*session
+	var watch bool
 	if a.current == g && g.ctx.Err() == nil && a.life != nil {
 		a.current = nil
 		a.selected = winner
@@ -209,61 +176,74 @@ func (a *Adapter) run(g *round, preferred C.Proxy) {
 				a.selected = preferred
 				a.validUntil = time.Time{}
 			}
-			a.retryAfter = time.Now().Add(15 * time.Second)
+			a.backoffLocked()
 			log.Warnln("[AutoTCP] no candidate completed the transfer check")
 		} else {
 			a.validUntil = time.Now().Add(a.healthyFor)
+			a.failures, a.retryAfter = 0, time.Time{}
 			g.winner = winner
 			log.Infoln("[AutoTCP] verified path: %s", winner.Name())
 			if a.verified && preferred != nil && preferred != winner {
 				for s := range a.sessions {
 					if s.route == preferred && s.life == a.life {
-						retired = append(retired, s)
+						if preferredFailed {
+							retired = append(retired, s)
+						}
+						watch = pending != nil
 					}
 				}
 			}
 		}
 	} else if a.current == g {
 		a.current = nil
-		a.retryAfter = time.Now().Add(15 * time.Second)
+		a.backoffLocked()
 	}
 	a.mu.Unlock()
 	close(g.done)
+	if pending != nil {
+		if watch {
+			go a.watchPreferred(g.life, preferred, pending)
+		} else {
+			pending.cancel()
+		}
+	}
 	for _, s := range retired {
 		_ = s.Close()
 	}
 }
 
 func (a *Adapter) DialContext(ctx context.Context, metadata *C.Metadata) (C.Conn, error) {
-	selected, life, err := a.choose(ctx)
-	if err != nil {
-		return nil, err
-	}
-	dialCtx, cancel := context.WithCancel(ctx)
-	stop := context.AfterFunc(life, cancel)
-	defer stop()
-	defer cancel()
-	conn, err := selected.DialContext(dialCtx, metadata)
-	if err != nil {
-		if dialCtx.Err() == nil {
-			a.mu.Lock()
-			if a.life == life && a.selected == selected {
-				a.validUntil = time.Time{}
-			}
-			a.mu.Unlock()
+	for attempt := 0; attempt < 2; attempt++ {
+		selected, life, err := a.choose(ctx)
+		if err != nil {
+			return nil, err
 		}
-		return nil, errors.New("AutoTCP destination connection failed")
+		dialCtx, cancel := context.WithCancel(ctx)
+		stop := context.AfterFunc(life, cancel)
+		conn, err := selected.DialContext(dialCtx, metadata)
+		canceled := dialCtx.Err() != nil
+		stop()
+		cancel()
+		if err != nil {
+			if !canceled {
+				a.invalidate(life, selected)
+			}
+			if a.verified && attempt == 0 && !canceled {
+				continue
+			}
+			return nil, errors.New("AutoTCP destination connection failed")
+		}
+		if life.Err() != nil || ctx.Err() != nil {
+			_ = conn.Close()
+			return nil, errors.New("AutoTCP stopped or network changed")
+		}
+		conn.AppendToChains(a)
+		if a.verified {
+			return &trackedConn{Conn: conn, session: a.track(conn, selected, life)}, nil
+		}
+		return conn, nil
 	}
-	if life.Err() != nil {
-		conn.Close()
-		return nil, errors.New("AutoTCP stopped or network changed")
-	}
-	conn.AppendToChains(a)
-	if a.verified {
-		s := a.track(conn, selected, life)
-		return &trackedConn{Conn: conn, session: s}, nil
-	}
-	return conn, nil
+	return nil, errors.New("AutoTCP destination connection failed")
 }
 
 func (a *Adapter) MarshalJSON() ([]byte, error) {
@@ -329,55 +309,37 @@ func (a *Adapter) track(conn io.Closer, route C.Proxy, life context.Context) *se
 	return s
 }
 
-func (a *Adapter) monitor(life context.Context) {
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-life.Done():
-			return
-		case <-ticker.C:
-			a.recheck(life)
-		}
-	}
-}
-
-func (a *Adapter) recheck(life context.Context) {
-	a.mu.Lock()
-	active := a.life == life && (len(a.sessions) > 0 || time.Since(a.lastUse) < 2*time.Minute)
-	due := time.Now().After(a.validUntil)
-	a.mu.Unlock()
-	if active && due {
-		_, _, _ = a.choose(life)
-	}
-}
-
 func (a *Adapter) ListenPacketContext(ctx context.Context, metadata *C.Metadata) (C.PacketConn, error) {
 	if a.udpRoute == nil {
 		return nil, C.ErrNotSupport
 	}
 	u := a.udpRoute
-	selected, life, err := u.choose(ctx)
-	if err != nil {
-		return nil, err
-	}
-	dialCtx, cancel := context.WithCancel(ctx)
-	stop := context.AfterFunc(life, cancel)
-	defer stop()
-	defer cancel()
-	conn, err := selected.ListenPacketContext(dialCtx, metadata)
-	if err != nil {
-		u.mu.Lock()
-		if u.life == life && u.selected == selected {
-			u.validUntil = time.Time{}
+	for attempt := 0; attempt < 2; attempt++ {
+		selected, life, err := u.choose(ctx)
+		if err != nil {
+			return nil, err
 		}
-		u.mu.Unlock()
-		return nil, errors.New("verified UDP destination connection failed")
+		dialCtx, cancel := context.WithCancel(ctx)
+		stop := context.AfterFunc(life, cancel)
+		conn, err := selected.ListenPacketContext(dialCtx, metadata)
+		canceled := dialCtx.Err() != nil
+		stop()
+		cancel()
+		if err != nil {
+			if !canceled {
+				u.invalidate(life, selected)
+			}
+			if u.verified && attempt == 0 && !canceled {
+				continue
+			}
+			return nil, errors.New("verified UDP destination connection failed")
+		}
+		if life.Err() != nil || ctx.Err() != nil {
+			_ = conn.Close()
+			return nil, errors.New("automatic route stopped or network changed")
+		}
+		conn.AppendToChains(a)
+		return &trackedPacketConn{PacketConn: conn, session: u.track(conn, selected, life)}, nil
 	}
-	if life.Err() != nil {
-		_ = conn.Close()
-		return nil, errors.New("automatic route stopped or network changed")
-	}
-	conn.AppendToChains(a)
-	return &trackedPacketConn{PacketConn: conn, session: u.track(conn, selected, life)}, nil
+	return nil, errors.New("verified UDP destination connection failed")
 }

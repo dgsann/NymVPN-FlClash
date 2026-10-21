@@ -92,7 +92,6 @@ func (c *countedConn) Close() error { c.closed.Store(true); return c.Conn.Close(
 func TestBackgroundRecheckRetiresOnlyFailedPathSessions(t *testing.T) {
 	one, two := fake("one"), fake("two")
 	a := New("verified", Config{Version: 2}, []C.Proxy{one, two})
-	a.SetActive(true)
 	defer a.Close()
 	var phase atomic.Int32
 	a.check = func(_ context.Context, p C.Proxy, _ string) error {
@@ -101,6 +100,7 @@ func TestBackgroundRecheckRetiresOnlyFailedPathSessions(t *testing.T) {
 		}
 		return errors.New("blocked")
 	}
+	a.SetActive(true)
 	var raw *countedConn
 	one.Adapter().(*fakeAdapter).dial = func(context.Context, *C.Metadata) (C.Conn, error) {
 		left, right := net.Pipe()
@@ -156,8 +156,9 @@ func TestUDPChoiceIsIndependentAndFailsClosed(t *testing.T) {
 	if !a.SupportUDP() || choose(t, a) != tcp || choose(t, a.udpRoute) != udp {
 		t.Fatal("TCP and UDP choices were coupled")
 	}
-	a.Reset()
+	a.SetActive(false)
 	a.udpRoute.check = func(context.Context, C.Proxy, string) error { return errors.New("blocked") }
+	a.SetActive(true)
 	if _, _, err := a.udpRoute.choose(context.Background()); err == nil {
 		t.Fatal("unverified UDP route selected")
 	}
