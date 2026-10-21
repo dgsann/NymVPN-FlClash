@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap
 private data class NetworkInfo(
     @Volatile var losingUntilMillis: Long = 0,
     @Volatile var dnsList: List<InetAddress> = emptyList(),
+    @Volatile var capabilities: NetworkCapabilities? = null,
 ) {
     val priorityPenalty: Int
         get() = if (losingUntilMillis > System.currentTimeMillis()) 10 else 0
@@ -33,8 +34,8 @@ internal class NetworkObserveModule(private val service: Service) : ServiceModul
         service.getSystemService<ConnectivityManager>()
     }
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var currentDnsList = listOf<String>()
-    private var currentNetwork: Network? = null
+    private val dnsSelector = DnsNetworkSelector<Network>()
+    @Volatile private var running = false
 
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
@@ -46,78 +47,93 @@ internal class NetworkObserveModule(private val service: Service) : ServiceModul
     }.build()
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) {
+        override fun onAvailable(network: Network) = updateNetwork {
             networkInfos[network] = NetworkInfo()
-            updateDns()
         }
 
-        override fun onLosing(network: Network, maxMsToLive: Int) {
-            val info = networkInfos[network] ?: return
+        override fun onLosing(network: Network, maxMsToLive: Int) = updateNetwork {
+            val info = networkInfos[network] ?: return@updateNetwork
             info.losingUntilMillis = System.currentTimeMillis() + maxMsToLive
-            updateDns()
             if (maxMsToLive > 0) {
-                mainHandler.postDelayed({
-                    if (networkInfos.containsKey(network)) {
-                        updateDns()
-                    }
-                }, maxMsToLive.toLong() + 50)
+                mainHandler.postDelayed({ updateNetwork {} }, maxMsToLive.toLong() + 50)
             }
         }
 
-        override fun onLost(network: Network) {
+        override fun onLost(network: Network) = updateNetwork {
             networkInfos.remove(network)
-            updateDns()
         }
 
-        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-            networkInfos[network]?.dnsList = linkProperties.dnsServers
-            updateDns()
-        }
+        override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) =
+            updateNetwork {
+                networkInfos[network]?.capabilities = capabilities
+            }
+
+        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) =
+            updateNetwork {
+                networkInfos[network]?.dnsList = linkProperties.dnsServers
+            }
     }
 
-    override fun start() {
+    @Synchronized
+    private fun updateNetwork(change: () -> Unit) {
+        if (!running) return
+        change()
         updateDns()
-        connectivity?.registerNetworkCallback(request, callback)
     }
 
-    private fun networkPriority(entry: Map.Entry<Network, NetworkInfo>): Int {
-        val capabilities = connectivity?.getNetworkCapabilities(entry.key)
-        return when {
+    @Synchronized
+    override fun start() {
+        if (running) return
+        running = true
+        try {
+            connectivity?.registerNetworkCallback(request, callback)
+        } catch (error: Exception) {
+            running = false
+            throw error
+        }
+    }
+
+    private fun dnsCandidate(entry: Map.Entry<Network, NetworkInfo>): DnsNetworkCandidate<Network> {
+        val capabilities = entry.value.capabilities
+        val access = when {
+            capabilities == null -> NetworkAccess.UNKNOWN
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) ->
+                NetworkAccess.CAPTIVE_PORTAL
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ->
+                NetworkAccess.VALIDATED
+            else -> NetworkAccess.UNVALIDATED
+        }
+        val transportPriority = when {
             capabilities == null -> 100
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> 90
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> 0
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> 1
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                 capabilities.hasTransport(TRANSPORT_USB) -> 2
-
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> 3
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> 4
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM &&
                 capabilities.hasTransport(TRANSPORT_SATELLITE) -> 5
-
             else -> 20
-        } + entry.value.priorityPenalty
+        }
+        return DnsNetworkCandidate(
+            network = entry.key,
+            dns = entry.value.dnsList.map { it.asSocketAddressText(DNS_PORT) }.distinct(),
+            access = access,
+            transportPriority = transportPriority,
+            losing = entry.value.priorityPenalty != 0,
+        )
     }
 
     @Synchronized
     private fun updateDns() {
-        val selected = networkInfos.asSequence()
-            .minByOrNull(::networkPriority)
-        val dnsList = selected
-            ?.value
-            ?.dnsList
-            .orEmpty()
-            .map { address -> address.asSocketAddressText(DNS_PORT) }
-            .distinct()
-        if (dnsList == currentDnsList && selected?.key == currentNetwork) {
-            return
-        }
-        currentDnsList = dnsList
-        currentNetwork = selected?.key
-        Core.updateDNS(dnsList.joinToString(","))
+        val selected = dnsSelector.update(networkInfos.entries.map(::dnsCandidate)) ?: return
+        Core.updateDNS(selected.dns.joinToString(","))
     }
 
+    @Synchronized
     override fun stop() {
+        running = false
         mainHandler.removeCallbacksAndMessages(null)
         try {
             connectivity?.unregisterNetworkCallback(callback)
