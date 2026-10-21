@@ -118,7 +118,7 @@ class Request {
       final remoteVersion = data['tag_name'];
       final version = globalState.packageInfo.version;
       final hasUpdate =
-          compareVersions(remoteVersion.replaceAll('v', ''), version) > 0;
+          compareVersions(remoteVersion, version) > 0;
       if (!hasUpdate) return null;
       return data;
     } catch (e) {

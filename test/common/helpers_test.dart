@@ -119,6 +119,39 @@ void main() {
       expect(compareVersions('1.0.0+2', '1.0.0+1'), greaterThan(0));
     });
 
+    test('orders NymVPN releases numerically before build metadata', () {
+      expect(
+        compareVersions('v0.8.98-nymvpn.12', '0.8.98-nymvpn.11+2026102011'),
+        greaterThan(0),
+      );
+      expect(
+        compareVersions('0.8.98-nymvpn.9', '0.8.98-nymvpn.12'),
+        lessThan(0),
+      );
+      expect(
+        compareVersions('0.8.98-nymvpn.12', '0.8.98-nymvpn.12'),
+        0,
+      );
+    });
+
+    test('compares base versions and installed NymVPN build numbers', () {
+      expect(
+        compareVersions('0.8.99-nymvpn.1', '0.8.98-nymvpn.12'),
+        greaterThan(0),
+      );
+      expect(
+        compareVersions('0.8.98-nymvpn.12+13', '0.8.98-nymvpn.12+12'),
+        greaterThan(0),
+      );
+    });
+
+    test('rejects unrelated version labels safely', () {
+      expect(
+        () => compareVersions('invalid', '0.8.98-nymvpn.12'),
+        throwsFormatException,
+      );
+    });
+
     test('handles missing minor/patch', () {
       expect(compareVersions('1', '1.0.0'), 0);
     });

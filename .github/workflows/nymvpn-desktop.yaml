@@ -36,7 +36,7 @@ jobs:
           dart run intl_utils:generate
           dart run build_runner build --delete-conflicting-outputs
           dart format lib/common/desktop_power.dart lib/providers/action.dart lib/providers/actions/setup.dart lib/views/nymvpn_customization.dart test/common/desktop_power_test.dart
-          flutter test test/common/desktop_power_test.dart test/providers/setup_action_test.dart test/core/desktop/ test/core/service_test.dart test/providers/system_action_test.dart test/widgets/nymvpn_customization_test.dart test/models/nymvpn_customization_test.dart test/common/nymvpn_profile_test.dart test/providers/state_derived_test.dart test/providers/action_test.dart
+          flutter test test/common/request_test.dart test/common/helpers_test.dart test/common/desktop_power_test.dart test/providers/setup_action_test.dart test/core/desktop/ test/core/service_test.dart test/providers/system_action_test.dart test/widgets/nymvpn_customization_test.dart test/models/nymvpn_customization_test.dart test/common/nymvpn_profile_test.dart test/providers/state_derived_test.dart test/providers/action_test.dart
           flutter analyze lib/common/desktop_power.dart lib/providers/action.dart lib/views/nymvpn_customization.dart test/common/desktop_power_test.dart
       - uses: actions/upload-artifact@v4
         if: always()
